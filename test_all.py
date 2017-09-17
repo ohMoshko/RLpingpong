@@ -35,7 +35,6 @@ def testPlayerAfterSwitch(arg_learning_mode, arg_player1_num_of_trains, arg_play
     test_player_log_file = "logs/" + "player" + str(learning_mode) +\
                          "learning" + str(opponent_num_of_trains)
 
-
     num_of_test = 0
 
     for subdir, dirs, files in os.walk(test_player_folder_path):
