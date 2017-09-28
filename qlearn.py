@@ -48,11 +48,6 @@ REPLAY_MEMORY = 50000 # number of previous transitions to remember
 BATCH = 32 # size of minibatch
 FRAME_PER_ACTION = 1
 
-player1_wins_in_a_row = 0
-player2_wins_in_a_row = 0
-
-player1_num_of_trains = 1
-player2_num_of_trains = 0
 
 test_all_command = "KERAS_BACKEND=theano THEANO_FLAGS=floatX=float32,device=gpu,force_device=True," \
                    "cuda.root=/usr/local/cuda,lib.cnmem=0.2 python ./test_all.py "
@@ -87,10 +82,10 @@ def trainNetwork(model,model2,args):
     player1_wins_in_a_row = 0
     player2_wins_in_a_row = 0
 
-    player1_num_of_trains = 1
+    player1_num_of_trains = 0
     player2_num_of_trains = 0
 
-    learning_mode = (args['learning_mode'])
+    learning_mode = (int(args['learning_mode']))
 
     if (learning_mode == 1):
         player1_num_of_trains = player1_num_of_trains + 1
@@ -106,7 +101,7 @@ def trainNetwork(model,model2,args):
     # get the first state by doing nothing and preprocess the image to 80x80x4
     do_nothing = np.zeros(ACTIONS)
     do_nothing[0] = 1
-    x_t, r_0, terminal,_ = game_state.frame_step(do_nothing,do_nothing)
+    x_t, r_0, terminal,_,_ = game_state.frame_step(do_nothing,do_nothing)
 
     x_t = skimage.color.rgb2gray(x_t)
     x_t = skimage.transform.resize(x_t,(80,80))
@@ -115,7 +110,7 @@ def trainNetwork(model,model2,args):
     s_t = np.stack((x_t, x_t, x_t, x_t), axis=0)
     s_t = s_t.reshape(1, s_t.shape[0], s_t.shape[1], s_t.shape[2])
 
-    learning_mode = 1  # 2 for learng based on human, 3 for reverse reinforcement
+
     if args['mode'] == 'Run':
         print ("Run mode")
 
@@ -194,10 +189,10 @@ def trainNetwork(model,model2,args):
 
         #run the selected action and observed next state and reward
         if (learning_mode == 1):
-            x_t1_colored, r_t, terminal,score = game_state.frame_step(a_t2, a_t)
+            x_t1_colored, r_t, terminal, score,_ = game_state.frame_step(a_t2, a_t)
 
         elif (learning_mode == 2):
-            x_t1_colored, r_t, terminal, score = game_state.frame_step(a_t, a_t2)
+            x_t1_colored, r_t, terminal, score,_ = game_state.frame_step(a_t, a_t2)
             r_t = -r_t
 
         game_over=terminal
@@ -255,13 +250,13 @@ def trainNetwork(model,model2,args):
             #print("Now we save model")
 
             if learning_mode == 1:
-                model2.save_weights("model1.h5", overwrite=True)
+                model.save_weights("model1.h5", overwrite=True)
                 with open("model.json", "w") as outfile:
-                    json.dump(model2.to_json(), outfile)
+                    json.dump(model.to_json(), outfile)
 
             elif learning_mode == 2:
                 model2.save_weights("model2.h5", overwrite=True)
-                with open("model.json", "w") as outfile:
+                with open("model2.json", "w") as outfile:
                     json.dump(model2.to_json(), outfile)
 
         current_time=datetime.datetime.now()
@@ -344,3 +339,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

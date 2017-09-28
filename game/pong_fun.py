@@ -54,6 +54,7 @@ class GameState:
 	self.no_learning_time = 0
 
     def init_after_game_is_stuck(self):
+        self.last_score_time = self.current_time
 	if (self.speed_y < 1 and self.speed_y > -1):
 		self.speed_y = -self.speed_y*(random.uniform(-17, 17))
 	elif (self.speed_y > 3 or self.speed_y < -3):
@@ -120,7 +121,7 @@ class GameState:
 		self.current_time = datetime.datetime.now()
 		if ((self.current_time - self.last_score_time).total_seconds() > 90):
 		    self.init_after_game_is_stuck()
-		    self.no_learning_time = self.no_learning_time + 90	
+		    self.no_learning_time = self.no_learning_time + 90
 		#self.speed_y = 70.                
 		self.circle_x = 605.
                 self.speed_x = -self.speed_x
@@ -175,6 +176,9 @@ class GameState:
         pygame.display.update()
 
         terminal = False
+
+        no_learning_time_to_return = self.no_learning_time
+
         if max(self.bar1_score, self.bar2_score) >= 20:
 	    self.no_learning_time = 0
             score = self.bar1_score, self.bar2_score
@@ -186,4 +190,5 @@ class GameState:
             score = self.bar1_score,self.bar2_score
 
 
-        return image_data, reward, terminal, score
+        return image_data, reward, terminal, score, no_learning_time_to_return
+

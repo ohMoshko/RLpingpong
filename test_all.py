@@ -35,6 +35,7 @@ def testPlayerAfterSwitch(arg_learning_mode, arg_player1_num_of_trains, arg_play
     test_player_log_file = "logs/" + "player" + str(learning_mode) +\
                          "learning" + str(opponent_num_of_trains)
 
+
     num_of_test = 0
 
     for subdir, dirs, files in os.walk(test_player_folder_path):
@@ -43,9 +44,9 @@ def testPlayerAfterSwitch(arg_learning_mode, arg_player1_num_of_trains, arg_play
             for subdir2, dirs2, files2 in os.walk(test_player_folder_path + "/" + str(d)):
                 num_of_test = num_of_test + 1
                 if (learning_mode == 1):
-                    run_test.main(file, opponent_most_updated_weights_file, num_of_test, test_player_log_file)
+                    run_test.main(files2[0], opponent_most_updated_weights_file, num_of_test, test_player_log_file)
                 elif (learning_mode == 2):
-                    run_test.main(opponent_most_updated_weights_file, file, num_of_test, test_player_log_file)
+                    run_test.main(opponent_most_updated_weights_file, files2[0], num_of_test, test_player_log_file)
 
 
 def main(arg_learning_mode, arg_player1_num_of_trains, arg_player2_num_of_trains):
@@ -53,3 +54,4 @@ def main(arg_learning_mode, arg_player1_num_of_trains, arg_player2_num_of_trains
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1], sys.argv[2], sys.argv[3]))
+

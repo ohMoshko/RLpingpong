@@ -73,8 +73,11 @@ def buildmodel():
     return model
 
 def run_test(model, model2, weights1_file, weights2_file, num_of_test, test_player_log_file):
-    test_start_time = datetime.datetime.now()
+    if not os.path.exists(test_player_log_file):
+        os.makedirs(test_player_log_file, 0755)
 
+    test_start_time = datetime.datetime.now()
+    no_learning_time = 0
     # open up a game state to communicate with emulator
     game_state = game.GameState()
 
@@ -83,7 +86,7 @@ def run_test(model, model2, weights1_file, weights2_file, num_of_test, test_play
 
     # Prevents error in frame step. Both bars stay in place.
     do_nothing[0] = 1
-    game_image_data, r_0, terminal,_ = game_state.frame_step(do_nothing, do_nothing)
+    game_image_data, r_0, terminal,_,_ = game_state.frame_step(do_nothing, do_nothing)
 
     # image processing
     game_image_data = skimage.color.rgb2gray(game_image_data)
@@ -152,28 +155,30 @@ def run_test(model, model2, weights1_file, weights2_file, num_of_test, test_play
         actions_vector2[action_index2] = 1
 
         # in order for us to see the game
-        image_data_colored1, _, terminal, score = game_state.frame_step(actions_vector1, actions_vector2)
+        image_data_colored1, _, terminal, score, no_learning_time = game_state.frame_step(actions_vector1, actions_vector2)
 
         game_over = terminal
         if (game_over == True):
             number_of_games = number_of_games - 1
             print(str(datetime.datetime.now()) + " game ended:   " + str(number_of_games) + " games left for the test")
 
-            if (game_state.bar1_score > game_state.bar2_score):
+            if (score[0] > score[1]):
                 left_player_num_of_wins = left_player_num_of_wins + 1
             else:
                 right_player_num_of_wins = right_player_num_of_wins + 1
 
-            game_over_log.write("score: " + str(score) +
+            with open(test_player_log_file + "/" + "game_over_log", "a") as game_over_file:
+
+                game_over_file.write("score: " + str(score) +
                                 "   game duration: " + str((datetime.datetime.now() - game_start_time).total_seconds())
                                 + " [sec]"+ "\n")
-            game_over_log.flush()
+                game_over_file.flush()
 
             left_player_scores.append(score[0])
             right_player_scores.append(score[1])
 
             current_time = datetime.datetime.now()
-            elapsedTime = (current_time - game_start_time).total_seconds()
+            elapsedTime = (current_time - game_start_time).total_seconds() - no_learning_time
             time_list.append(elapsedTime)
 
             game_start_time = datetime.datetime.now()
@@ -195,10 +200,17 @@ def run_test(model, model2, weights1_file, weights2_file, num_of_test, test_play
         left_player_average_score = np.mean(left_player_scores)
         right_player_average_score = np.mean(right_player_scores)
 
+        print("left_player_num_of_wins: ", left_player_num_of_wins)
+        print("\nright_player_num_of_wins: ", right_player_num_of_wins)
+
         left_player_win_percentage = (left_player_num_of_wins / float(original_number_of_games)) * 100
         right_player_win_percentage = (right_player_num_of_wins / float(original_number_of_games)) * 100
 
-        with open(test_player_log_file + "_log", "a") as results_file:
+        print("\n\nleft_player_win_percentage: ", left_player_win_percentage)
+        print("\nright_player_win_percentage: ", right_player_win_percentage)
+
+
+        with open(test_player_log_file + "/" + "game_summary", "a") as results_file:
 
             results_file.write("\n" +
                                 "Game Summary" + str(num_of_test) + ":" + "\n" +
@@ -224,4 +236,5 @@ def main(weights1_file, weights2_file, num_of_test, test_player_log_file):
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]))
+
 
