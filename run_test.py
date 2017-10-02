@@ -30,7 +30,12 @@ import os.path
 import datetime
 import shutil
 
+
+import plotly.plotly as py
+import plotly.graph_objs as go
+
 from keras.utils.visualize_util import plot
+
 GAME = 'pong' # the name of the game being played for log files
 CONFIG = 'nothreshold'
 ACTIONS = 3 # number of valid actions
@@ -122,6 +127,14 @@ def run_test(model, model2, weights1_file, weights2_file, num_of_test, test_play
 
     left_player_num_of_wins = 0
     right_player_num_of_wins = 0
+
+    trace = go.Scatter(
+        mode='lines+markers',
+        name=plot
+    )
+
+    data = [trace]
+    py.iplot(data, filename=test_player_log_file + '/' + 'plot')
 
     while (number_of_games > 0):
         loss = 0
