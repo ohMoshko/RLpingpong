@@ -3,6 +3,7 @@ import sys
 import glob
 import run_test
 import argparse
+import matplotlib.pyplot as plt
 
 def testPlayerAfterSwitch(arg_learning_mode, arg_player1_num_of_trains, arg_player2_num_of_trains):
     opponents_number = 0
@@ -34,7 +35,6 @@ def testPlayerAfterSwitch(arg_learning_mode, arg_player1_num_of_trains, arg_play
 
     test_player_log_file = "logs/" + "player" + str(learning_mode) +\
                          "learning" + str(opponent_num_of_trains)
-
 
     num_of_test = 0
 

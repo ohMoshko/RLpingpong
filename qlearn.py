@@ -48,7 +48,7 @@ EXPLORE = 3000000.  # frames over which to anneal epsilon
 FINAL_EPSILON = 0.0001  # final value of epsilon
 INITIAL_EPSILON = 0.1  # starting value of epsilon
 REPLAY_MEMORY = 50000  # number of previous transitions to remember
-BATCH = 32  # size of minibatch
+BATCH = 32  # size of one minibatch
 FRAME_PER_ACTION = 1
 
 test_all_command = "KERAS_BACKEND=theano THEANO_FLAGS=floatX=float32,device=gpu,force_device=True," \
@@ -72,8 +72,9 @@ def copytree(src, dst, symlinks=False, ignore=None):
 
 def train_sequentially(left_player, right_player):
     # moving old trials to old_trials folder
-    copytree('trails_sequentially', 'old_trials_sequentially')
-    shutil.rmtree('trails_sequentially')
+    if os.path.exists('trials_sequentially'):
+        copytree('trails_sequentially', 'old_trials_sequentially')
+        shutil.rmtree('trails_sequentially')
     os.mkdir('trials_sequentially', 0755)
 
     current_training_player = CurrentPlayer.left
@@ -115,7 +116,6 @@ def train_sequentially(left_player, right_player):
         reward = 0
         Q_sb = 0
         action_index2 = 0
-        r_t2 = 0
 
         action_left_player = np.zeros([NUM_OF_ACTIONS])
         action_right_player = np.zeros([NUM_OF_ACTIONS])
@@ -184,9 +184,9 @@ def train_sequentially(left_player, right_player):
                 terminal_t = minibatch[i][4]
                 # if terminated, only equals reward
 
-                inputs[i:i + 1] = current_state_t  # I saved down next_state
+                inputs[i:i + 1] = current_state_t
 
-                targets[i] = right_player.model.predict(current_state_t)  # Hitting each buttom probability
+                targets[i] = right_player.model.predict(current_state_t)
                 Q_sa = right_player.model.predict(next_state_t)
 
                 if terminal_t:

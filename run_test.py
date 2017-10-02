@@ -31,9 +31,6 @@ import datetime
 import shutil
 
 
-import plotly.plotly as py
-import plotly.graph_objs as go
-
 from keras.utils.visualize_util import plot
 
 GAME = 'pong' # the name of the game being played for log files
@@ -54,7 +51,7 @@ img_channels = 4 #We stack 4 frames
 
 
 # log files:
-game_over_log = open("logs_" + GAME + "/game_over_log" + ".txt", 'w')
+#game_over_log = open("logs_" + GAME + "/game_over_log" + ".txt", 'w')
 
 def buildmodel():
     print("Now we build the model")
@@ -128,25 +125,9 @@ def run_test(model, model2, weights1_file, weights2_file, num_of_test, test_play
     left_player_num_of_wins = 0
     right_player_num_of_wins = 0
 
-    trace = go.Scatter(
-        mode='lines+markers',
-        name=plot
-    )
-
-    data = [trace]
-    py.iplot(data, filename=test_player_log_file + '/' + 'plot')
-
     while (number_of_games > 0):
-        loss = 0
-        Q_sa = 0
-        action_index1 = 0
         actions_vector1 = np.zeros([ACTIONS])
-	
-	loss2 = 0
-        Q_sb = 0
-        action_index2 = 0
-        reward2 = 0
-	actions_vector2 = np.zeros([ACTIONS])
+        actions_vector2 = np.zeros([ACTIONS])
 
 
         # choose an action epsilon greedy for player 1:
@@ -183,9 +164,11 @@ def run_test(model, model2, weights1_file, weights2_file, num_of_test, test_play
             with open(test_player_log_file + "/" + "game_over_log", "a") as game_over_file:
 
                 game_over_file.write("score: " + str(score) +
-                                "   game duration: " + str((datetime.datetime.now() - game_start_time).total_seconds())
+                                "   game duration: " + str((datetime.datetime.now() - game_start_time).total_seconds()
+                                                           - no_learning_time)
                                 + " [sec]"+ "\n")
                 game_over_file.flush()
+
 
             left_player_scores.append(score[0])
             right_player_scores.append(score[1])
@@ -241,7 +224,7 @@ def playGame(weights1_file, weights2_file, num_of_test, test_player_log_file):
 
     run_test(left_player, right_player, weights1_file, weights2_file, num_of_test, test_player_log_file)
 
-    game_over_log.close
+    #game_over_log.close
 
 def main(weights1_file, weights2_file, num_of_test, test_player_log_file):
     print (weights1_file, " ", weights2_file)
