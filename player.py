@@ -18,11 +18,14 @@ class Player:
         The player can be either the left or the right player.
         The player is represented as a neural network."""
 
-    def __init__(self):
+    def __init__(self, weights_file):
         self.model = None
-        self.weights_file = None
+        self.weights_file = weights_file
+        self.num_of_trains = 0
+        self.num_of_wins_in_a_row = 0
 
-    def build_model(self, weights_file):
+
+    def build_model(self):
         print("Building the model")
         model = Sequential()
         model.add(
@@ -44,12 +47,11 @@ class Player:
 
         adam = Adam(lr=1e-6)
         model.compile(loss='mse', optimizer=adam)
-        print("Model was successfully built")
+        print("The model was successfully built")
 
-        model.load_weights(weights_file)
+        model.load_weights(self.weights_file)
         model.compile(loss='mse', optimizer=adam)
 
-        self.weights_file = weights_file
         self.model = model
 
 
