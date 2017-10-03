@@ -35,9 +35,9 @@ def test_player_after_switch(arg_last_learning_player, arg_player1_num_of_trains
                            "learning" + str(opponent_num_of_trains)
 
     num_of_test = 0
-
     game_times = []
     game_numbers = []
+    times = []
 
     for subdir, dirs, files in os.walk(test_player_folder_path):
         dirs.sort(key=lambda f: int(filter(str.isdigit, f)))
@@ -62,12 +62,13 @@ def test_player_after_switch(arg_last_learning_player, arg_player1_num_of_trains
         str_last_learning_player = 'Right'
         last_learning_player_num_of_trains = player1_num_of_trains
 
-    game_numbers.extnd(range(1, len(game_times) + 1))
+    game_numbers.extend(range(1, len(game_times) + 1))
     plt.plot(game_numbers, game_times)
     plt.title(str_last_learning_player + ' player simultaneously training number ' +
-              last_learning_player_num_of_trains)
+              str(last_learning_player_num_of_trains))
     plt.xlabel('gmae number')
-    plt.ylabel('game length')
+    plt.ylabel('game length [sec]')
+    plt.savefig(test_player_log_file + '/game_length_vs_game_num.png')
 
 
 def main(arg_last_learning_player, arg_player1_num_of_trains, arg_player2_num_of_trains):

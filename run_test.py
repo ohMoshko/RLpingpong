@@ -85,7 +85,8 @@ def run_test(left_player, right_player, num_of_test, test_player_log_file):
     right_player_scores = []
     time_list = []
 
-    number_of_games = 10
+    # TODO: change number of games back to 10
+    number_of_games = 2
     original_number_of_games = number_of_games
 
     game_start_time = datetime.datetime.now()
@@ -194,7 +195,8 @@ def main(weights1_file, weights2_file, num_of_test, test_player_log_file):
     right_player = Player(weights2_file)
     right_player.build_model()
 
-    run_test(left_player, right_player, num_of_test, test_player_log_file)
+    return run_test(left_player, right_player, num_of_test, test_player_log_file)
+
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]))
