@@ -51,11 +51,11 @@ REPLAY_MEMORY = 50000  # number of previous transitions to remember
 BATCH = 32  # size of one minibatch
 FRAME_PER_ACTION = 1
 
-test_all_command = "KERAS_BACKEND=theano THEANO_FLAGS=floatX=float32,device=gpu,force_device=True," \
-                   "cuda.root=/usr/local/cuda,lib.cnmem=0.2 python ./test_all.py "
+test_sequential_command = "KERAS_BACKEND=theano THEANO_FLAGS=floatX=float32,device=gpu,force_device=True," \
+                   "cuda.root=/usr/local/cuda,lib.cnmem=0.2 python ./test_sequential_training.py "
 
 
-class CurrentPlayer(Enum): # TODO: check if supported
+class CurrentPlayer(Enum):
     left = 1
     right = 2
 
@@ -87,7 +87,7 @@ def train_sequentially(left_player, right_player):
     # store the previous observations in replay memory
     D = deque()
 
-    # get the first state (doing nothing) and pre-process the image to 4x80x80
+    # get the first state (do nothing) and pre-process the image to 4x80x80
     do_nothing = np.zeros(NUM_OF_ACTIONS)
     do_nothing[0] = 1
 
@@ -241,7 +241,7 @@ def train_sequentially(left_player, right_player):
                 right_player.num_of_wins_in_a_row = 0
 
             if (current_training_player == CurrentPlayer.left and left_player.num_of_wins_in_a_row == 50):
-                subprocess.call('. ~/flappy/bin/activate && ' + test_all_command + ' ' + str(1) +
+                subprocess.call('. ~/flappy/bin/activate && ' + test_sequential_command + ' ' + str(1) +
                                 ' ' + str(left_player.num_of_trains) + ' ' + str(right_player.num_of_trains),
                                 shell=True)
 
@@ -254,7 +254,7 @@ def train_sequentially(left_player, right_player):
                 start_time = datetime.datetime.now()
 
             elif (current_training_player == CurrentPlayer.right and right_player.num_of_wins_in_a_row == 50):
-                subprocess.call('. ~/flappy/bin/activate && ' + test_all_command + ' ' + str(2) +
+                subprocess.call('. ~/flappy/bin/activate && ' + test_sequential_command + ' ' + str(2) +
                                 ' ' + str(left_player.num_of_trains) + ' ' + str(right_player.num_of_trains),
                                 shell=True)
 
@@ -270,7 +270,7 @@ def train_sequentially(left_player, right_player):
     print("************************")
 
 
-def playGame(args):
+def play_game(args):
     if not os.path.isfile('model1.h5') or not os.path.isfile('model2.h5'):
         print("Weights files are missing!")
     else:
@@ -289,7 +289,7 @@ def main():
     parser = argparse.ArgumentParser(description='Ping-Pong Q-Learning')
     parser.add_argument('-l', '--learning_mode', help='SEQUENTIALLY, SIMULTANEOUSLY', required=False)
     args = vars(parser.parse_args())
-    playGame(args)
+    play_game(args)
 
 
 if __name__ == "__main__":

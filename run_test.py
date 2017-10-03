@@ -29,7 +29,7 @@ from time import gmtime, strftime
 import os.path
 import datetime
 import shutil
-
+from player import Player
 
 from keras.utils.visualize_util import plot
 
@@ -53,28 +53,7 @@ img_channels = 4 #We stack 4 frames
 # log files:
 #game_over_log = open("logs_" + GAME + "/game_over_log" + ".txt", 'w')
 
-def buildmodel():
-    print("Now we build the model")
-    model = Sequential()
-    model.add(Convolution2D(32, 8, 8, subsample=(4,4),init=lambda shape, name: normal(shape, scale=0.01, name=name), border_mode='same',input_shape=(img_channels,img_rows,img_cols)))
-    model.add(Activation('relu'))
-    model.add(Convolution2D(64, 4, 4, subsample=(2,2),init=lambda shape, name: normal(shape, scale=0.01, name=name), border_mode='same'))
-    model.add(Activation('relu'))
-    model.add(Convolution2D(64, 3, 3, subsample=(1,1),init=lambda shape, name: normal(shape, scale=0.01, name=name), border_mode='same'))
-    model.add(Activation('relu'))
-    model.add(Flatten())
-    model.add(Dense(512, init=lambda shape, name: normal(shape, scale=0.01, name=name)))
-    model.add(Activation('relu'))
-    model.add(Dense(ACTIONS,init=lambda shape, name: normal(shape, scale=0.01, name=name)))
-
-    adam = Adam(lr=1e-6)
-    model.compile(loss='mse',optimizer=adam)
-    #model.summary()
-    print("We finish building the model")
-    plot(model, to_file='model.png', show_shapes=True)
-    return model
-
-def run_test(model, model2, weights1_file, weights2_file, num_of_test, test_player_log_file):
+def run_test(left_player, right_player, num_of_test, test_player_log_file):
     if not os.path.exists(test_player_log_file):
         os.makedirs(test_player_log_file, 0755)
 
@@ -101,37 +80,25 @@ def run_test(model, model2, weights1_file, weights2_file, num_of_test, test_play
     #In Keras, need to reshape
     last_4_frames = last_4_frames.reshape(1, last_4_frames.shape[0], last_4_frames.shape[1], last_4_frames.shape[2])
 
-
-    print ("Now we load weights")
-    adam = Adam(lr=1e-6)
-    model.load_weights(weights1_file)
-    model.compile(loss='mse',optimizer=adam)
-    model2.load_weights(weights2_file)
-    model2.compile(loss='mse', optimizer=adam)
-    print ("Weights load successfully")
-
-    #learning_mode=int(args['learning_mode']) #which player to test
-
-    num_folder=0
+    num_folder = 0
     left_player_scores = []
     right_player_scores = []
-    time_list= []
+    time_list = []
 
     number_of_games = 10
     original_number_of_games = number_of_games
 
     game_start_time = datetime.datetime.now()
 
-    left_player_num_of_wins = 0
-    right_player_num_of_wins = 0
+    left_player.num_of_wins = 0
+    right_player.num_of_wins = 0
 
     while (number_of_games > 0):
         actions_vector1 = np.zeros([ACTIONS])
         actions_vector2 = np.zeros([ACTIONS])
 
-
         # choose an action epsilon greedy for player 1:
-        q1 = model.predict(last_4_frames)  # input a stack of 4 images, get the prediction
+        q1 = left_player.model.predict(last_4_frames)  # input a stack of 4 images, get the prediction
         max_Q1 = np.argmax(q1)
         action_index1 = max_Q1
 
@@ -140,7 +107,7 @@ def run_test(model, model2, weights1_file, weights2_file, num_of_test, test_play
         actions_vector1[action_index1] = 1
 
         # choose an action epsilon greedy for player 2:
-        q2 = model2.predict(last_4_frames)  # input a stack of 4 images, get the prediction
+        q2 = right_player.model.predict(last_4_frames)  # input a stack of 4 images, get the prediction
         max_Q2 = np.argmax(q2)
         action_index2 = max_Q2
 
@@ -157,9 +124,9 @@ def run_test(model, model2, weights1_file, weights2_file, num_of_test, test_play
             print(str(datetime.datetime.now()) + " game ended:   " + str(number_of_games) + " games left for the test")
 
             if (score[0] > score[1]):
-                left_player_num_of_wins = left_player_num_of_wins + 1
+                left_player.num_of_wins = left_player.num_of_wins + 1
             else:
-                right_player_num_of_wins = right_player_num_of_wins + 1
+                right_player.num_of_wins = right_player.num_of_wins + 1
 
             with open(test_player_log_file + "/" + "game_over_log", "a") as game_over_file:
 
@@ -182,7 +149,7 @@ def run_test(model, model2, weights1_file, weights2_file, num_of_test, test_play
 
         # image processing
         x_t1 = skimage.color.rgb2gray(image_data_colored1)
-        x_t1 = skimage.transform.resize(x_t1,(80,80))
+        x_t1 = skimage.transform.resize(x_t1, (80, 80))
         x_t1 = skimage.exposure.rescale_intensity(x_t1, out_range=(0, 255))
 
         x_t1 = x_t1.reshape(1, 1, x_t1.shape[0], x_t1.shape[1])
@@ -196,11 +163,11 @@ def run_test(model, model2, weights1_file, weights2_file, num_of_test, test_play
         left_player_average_score = np.mean(left_player_scores)
         right_player_average_score = np.mean(right_player_scores)
 
-        print("left_player_num_of_wins: ", left_player_num_of_wins)
-        print("\nright_player_num_of_wins: ", right_player_num_of_wins)
+        print("left_player_num_of_wins: ", left_player.num_of_wins)
+        print("\nright_player_num_of_wins: ", right_player.num_of_wins)
 
-        left_player_win_percentage = (left_player_num_of_wins / float(original_number_of_games)) * 100
-        right_player_win_percentage = (right_player_num_of_wins / float(original_number_of_games)) * 100
+        left_player_win_percentage = (left_player.num_of_wins / float(original_number_of_games)) * 100
+        right_player_win_percentage = (right_player.num_of_wins / float(original_number_of_games)) * 100
 
         print("\n\nleft_player_win_percentage: ", left_player_win_percentage)
         print("\nright_player_win_percentage: ", right_player_win_percentage)
@@ -216,19 +183,18 @@ def run_test(model, model2, weights1_file, weights2_file, num_of_test, test_play
                                 "   right player win percentage: " + str(right_player_win_percentage) + "%" + "\n" +
                                 "   average time: " + str(average_time) + "[sec]" + "\n" + "\n" + "\n")
 
+    return time_list
 
-
-def playGame(weights1_file, weights2_file, num_of_test, test_player_log_file):
-    left_player = buildmodel()
-    right_player = buildmodel()
-
-    run_test(left_player, right_player, weights1_file, weights2_file, num_of_test, test_player_log_file)
-
-    #game_over_log.close
 
 def main(weights1_file, weights2_file, num_of_test, test_player_log_file):
-    print (weights1_file, " ", weights2_file)
-    playGame(weights1_file, weights2_file, num_of_test, test_player_log_file)
+    print(weights1_file, " ", weights2_file)
+
+    left_player = Player(weights1_file)
+    left_player.build_model()
+    right_player = Player(weights2_file)
+    right_player.build_model()
+
+    run_test(left_player, right_player, num_of_test, test_player_log_file)
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]))
