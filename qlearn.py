@@ -254,17 +254,17 @@ def train_sequentially(left_player, right_player, first_learning_player):
             start_time = datetime.datetime.now()
 
             if current_training_player == CurrentPlayer.left:
-                os.makedirs('trials/' + 'left_player_learning' +
+                os.makedirs('trials_sequentially/' + 'left_player_learning' +
                             str(left_player.num_of_trains) + '/' + str(num_folder), 0755)
 
-                shutil.copy2('model1.h5', 'trials/left_player_learning' +
+                shutil.copy2('model1.h5', 'trials_sequentially/' + 'left_player_learning' +
                              str(left_player.num_of_trains) + '/' + str(num_folder) + '/model1.h5')
 
             elif current_training_player == CurrentPlayer.right:
-                os.makedirs('trials/' + 'right_player_learning' +
+                os.makedirs('trials_sequentially/' + 'right_player_learning' +
                             str(right_player.num_of_trains) + '/' + str(num_folder), 0755)
 
-                shutil.copy2('model2.h5', 'trials/' + 'right_player_learning' +
+                shutil.copy2('model2.h5', 'trials_sequentially/' + 'right_player_learning' +
                              str(right_player.num_of_trains) + '/' + str(num_folder) + '/model2.h5')
 
         if terminal:  # game over

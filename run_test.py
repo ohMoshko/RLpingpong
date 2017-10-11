@@ -85,8 +85,7 @@ def run_test(left_player, right_player, num_of_test, test_player_log_file):
     right_player_scores = []
     time_list = []
 
-    # TODO: change number of games back to 10
-    number_of_games = 2
+    number_of_games = 5
     original_number_of_games = number_of_games
 
     game_start_time = datetime.datetime.now()
