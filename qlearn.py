@@ -50,7 +50,7 @@ REPLAY_MEMORY = 50000  # number of previous transitions to remember
 BATCH = 32  # size of one minibatch
 FRAME_PER_ACTION = 1
 
-test_sequential_command = "KERAS_BACKEND=theano THEANO_FLAGS=floatX=float32,device=gpu,force_device=True," \
+TEST_SEQUENTIAL_COMMAND = "KERAS_BACKEND=theano THEANO_FLAGS=floatX=float32,device=gpu,force_device=True," \
                           "cuda.root=/usr/local/cuda,lib.cnmem=0.2 python ./test_sequential_training.py "
 
 
@@ -70,6 +70,11 @@ def copytree(src, dst, symlinks=False, ignore=None):
 
 
 def train_sequentially(left_player, right_player, first_learning_player):
+    if not os.path.exists('logs'):
+        copytree('logs', 'logs_old')
+        shutil.rmtree('logs')
+    os.makedirs('logs')
+
     # moving old trials to old_trials folder
     if os.path.exists('trials_sequentially'):
         copytree('trials_sequentially', 'old_trials_sequentially')
@@ -78,10 +83,10 @@ def train_sequentially(left_player, right_player, first_learning_player):
 
     current_training_player = CurrentPlayer.left
     if (first_learning_player == CurrentPlayer.left):
-        left_player.num_of_trains = left_player.num_of_trains + 1
+        left_player.num_of_trains += 1
     elif (first_learning_player == CurrentPlayer.right):
         current_training_player = CurrentPlayer.right
-        right_player.num_of_trains = right_player.num_of_trains + 1
+        right_player.num_of_trains += 1
 
     # open up a game state to communicate with emulator
     game_state = game.GameState()
@@ -112,17 +117,18 @@ def train_sequentially(left_player, right_player, first_learning_player):
     observation_counter = 0
     num_folder = 0
     start_time = datetime.datetime.now()
+    losses = []
 
     while True:
         loss = 0
         Q_sa = 0
 
-        # player1
+        # player1 - left player
         action_index1 = 0
         reward1 = 0
         action_left_player = np.zeros([NUM_OF_ACTIONS])
 
-        # player2
+        # player2 - right player
         action_index2 = 0
         reward2 = 0
         action_right_player = np.zeros([NUM_OF_ACTIONS])
@@ -180,7 +186,7 @@ def train_sequentially(left_player, right_player, first_learning_player):
         single_game_frame_binary = skimage.exposure.rescale_intensity(single_game_frame_binary, out_range=(0, 255))
         single_game_frame_binary = single_game_frame_binary.reshape(1, 1, single_game_frame_binary.shape[0],
                                                                     single_game_frame_binary.shape[1])
-        # next 4 images
+        # next 4 images = next state
         next_state = np.append(single_game_frame_binary, current_state[:, :3, :, :], axis=1)
 
         if (current_training_player == CurrentPlayer.left):
@@ -194,7 +200,7 @@ def train_sequentially(left_player, right_player, first_learning_player):
 
         # only train if done observing
         if observation_counter > OBSERVATION:
-            # sample a minibatch to train on
+            # sample a minibatch to train on - eliminates states correlation
             if current_training_player == CurrentPlayer.left:
                 minibatch = random.sample(D1, BATCH)
             elif current_training_player == CurrentPlayer.right:
@@ -276,7 +282,7 @@ def train_sequentially(left_player, right_player, first_learning_player):
                 right_player.num_of_wins_in_a_row = 0
 
             if (current_training_player == CurrentPlayer.left and left_player.num_of_wins_in_a_row == 25):
-                subprocess.call('. ~/flappy/bin/activate && ' + test_sequential_command + ' ' + str(1) +
+                subprocess.call('. ~/flappy/bin/activate && ' + TEST_SEQUENTIAL_COMMAND + ' ' + str(1) +
                                 ' ' + str(left_player.num_of_trains) + ' ' + str(right_player.num_of_trains),
                                 shell=True)
 
@@ -290,7 +296,7 @@ def train_sequentially(left_player, right_player, first_learning_player):
                 # TODO: saveweights file when changing learning layer
 
             elif (current_training_player == CurrentPlayer.right and right_player.num_of_wins_in_a_row == 25):
-                subprocess.call('. ~/flappy/bin/activate && ' + test_sequential_command + ' ' + str(2) +
+                subprocess.call('. ~/flappy/bin/activate && ' + TEST_SEQUENTIAL_COMMAND + ' ' + str(2) +
                                 ' ' + str(left_player.num_of_trains) + ' ' + str(right_player.num_of_trains),
                                 shell=True)
 
@@ -307,23 +313,25 @@ def train_sequentially(left_player, right_player, first_learning_player):
 
 
 def play_game(args):
-    if not os.path.isfile('model1.h5') or not os.path.isfile('model2.h5'):
-        print("Weights files are missing!")
-    else:
-        left_player = Player('model1.h5')
-        left_player.build_model()
-        right_player = Player('model2.h5')
-        right_player.build_model()
+    #if not os.path.isfile('model1.h5') or not os.path.isfile('model2.h5'):
+    #    print("Weights files are missing!")
+    left_player = Player()
+    left_player.build_model()
+    left_player.load_model_weights('model1.h5')
+    right_player = Player()
+    right_player.build_model()
+    right_player.model.save_weights('model2.h5')
+    right_player.model.save_weights('model2.h5')
 
-        if (int(args['first_learning_player']) == 1):
-            first_learning_player = CurrentPlayer.left
-        elif (int(args['first_learning_player']) == 2):
-            first_learning_player = CurrentPlayer.right
+    if (int(args['first_learning_player']) == 1):
+        first_learning_player = CurrentPlayer.left
+    elif (int(args['first_learning_player']) == 2):
+        first_learning_player = CurrentPlayer.right
 
-        if args['learning_mode'] == 'SEQUENTIALLY':  # one after another (left and then right and then left...)
-            train_sequentially(left_player, right_player, first_learning_player)
-            # elif (args['learning_mode'] == 'SIMULTANEOUSLY'):
-            #     train_simultaneously(left_player, right_player)
+    if args['learning_mode'] == 'SEQUENTIALLY':  # one after another (left and then right and then left...)
+        train_sequentially(left_player, right_player, first_learning_player)
+        # elif (args['learning_mode'] == 'SIMULTANEOUSLY'):
+        #     train_simultaneously(left_player, right_player)
 
 
 def main():

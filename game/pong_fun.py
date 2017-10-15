@@ -179,8 +179,7 @@ class GameState:
 
         no_learning_time_to_return = self.no_learning_time
 
-        # TODO: change back to 20
-        if max(self.bar1_score, self.bar2_score) >= 2:
+        if max(self.bar1_score, self.bar2_score) >= 20:
 	    self.no_learning_time = 0
             score = self.bar1_score, self.bar2_score
             self.bar1_score = 0
