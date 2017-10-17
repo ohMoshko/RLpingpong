@@ -37,7 +37,7 @@ from keras.utils.visualize_util import plot
 GAME = 'pong'  # the name of the game being played for log files
 CONFIG = 'nothreshold'
 ACTIONS = 3  # number of valid actions
-GAMMA = 0.99  # decay rate of past observations
+GAMMA = 0.9  # decay rate of past observations
 OBSERVATION = 320.  # timesteps to observe before training
 EXPLORE = 3000000.  # frames over which to anneal epsilon
 FINAL_EPSILON = 0.0001  # final value of epsilon
@@ -50,7 +50,7 @@ img_rows, img_cols = 80, 80
 img_channels = 4  # We stack 4 frames
 
 
-def run_test(left_player, right_player, num_of_test, test_player_log_file):
+def run_test(learnig_player, left_player, right_player, num_of_test, test_player_log_file):
     if not os.path.exists(test_player_log_file):
         os.makedirs(test_player_log_file, 0755)
 
@@ -82,8 +82,10 @@ def run_test(left_player, right_player, num_of_test, test_player_log_file):
     right_player_scores = []
     time_list = []
     game_score = []
+    left_player_q_max_list = []
+    right_player_q_max_list = []
 
-    number_of_games = 5
+    number_of_games = 2
     original_number_of_games = number_of_games
 
     game_start_time = datetime.datetime.now()
@@ -99,6 +101,8 @@ def run_test(left_player, right_player, num_of_test, test_player_log_file):
         q1 = left_player.model.predict(last_4_frames)  # input a stack of 4 images, get the prediction
         max_Q1 = np.argmax(q1)
         action_index1 = max_Q1
+        q_max1 = np.amax(q1)
+        left_player_q_max_list.append((num_folder, q_max1))
 
         # actions_vector1: input vector for frame_step function. contains the desired action for player 1
         # e.g [0,1,0]- up
@@ -108,10 +112,17 @@ def run_test(left_player, right_player, num_of_test, test_player_log_file):
         q2 = right_player.model.predict(last_4_frames)  # input a stack of 4 images, get the prediction
         max_Q2 = np.argmax(q2)
         action_index2 = max_Q2
+        q_max2 = np.amax(q2)
+        right_player_q_max_list.append((num_folder, q_max2))
 
         # actions_vector2: input vector for frame_step function. contains the desired action
         # e.g [0,1,0]- up
         actions_vector2[action_index2] = 1
+        with open(test_player_log_file + '/qmax', 'a') as qmax_log_file:
+            if learnig_player == 1:
+                qmax_log_file.write(str(num_of_test) + ' : ' + str(q_max1) + '\n')
+            else:
+                qmax_log_file.write(str(num_of_test) + ' : ' + str(q_max2) + '\n')
 
         # in order for us to see the game
         image_data_colored1, _, terminal, score, no_learning_time = game_state.frame_step(actions_vector1,
@@ -179,10 +190,10 @@ def run_test(left_player, right_player, num_of_test, test_player_log_file):
                                "   right player win percentage: " + str(right_player_win_percentage) + "%" + "\n" +
                                "   average time: " + str(average_time) + "[sec]" + "\n" + "\n" + "\n")
 
-    return time_list, game_score
+    return time_list, game_score, left_player_q_max_list, right_player_q_max_list
 
 
-def main(weights1_file, weights2_file, num_of_test, test_player_log_file):
+def main(learning_player, weights1_file, weights2_file, num_of_test, test_player_log_file):
     print(weights1_file, " ", weights2_file)
 
     left_player = Player()
@@ -192,8 +203,8 @@ def main(weights1_file, weights2_file, num_of_test, test_player_log_file):
     right_player.build_model()
     right_player.load_model_weights(weights2_file)
 
-    return run_test(left_player, right_player, num_of_test, test_player_log_file)
+    return run_test(learning_player, left_player, right_player, num_of_test, test_player_log_file)
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]))
+    sys.exit(main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]))

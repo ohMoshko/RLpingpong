@@ -10,6 +10,7 @@ from skimage.transform import rotate
 from skimage.viewer import ImageViewer
 from skimage.filters import threshold_otsu
 import sys
+import graphs
 
 sys.path.append("game/")
 import pong_fun_no_random_start as game
@@ -40,8 +41,8 @@ IMAGE_NUM_OF_CHANNELS = 4
 NUM_OF_ACTIONS = 3  # number of valid actions: up, down or stay in place
 
 GAME = 'pong'  # the name of the game being played for log files
-CONFIG = 'nothreshold'
-GAMMA = 0.99  # decay rate of past observations
+# TODO: change back gamma to 0.99
+GAMMA = 0.9  # decay rate of past observations
 OBSERVATION = 320.  # timesteps to observe before training
 EXPLORE = 3000000.  # frames over which to anneal epsilon
 FINAL_EPSILON = 0.0001  # final value of epsilon
@@ -69,24 +70,63 @@ def copytree(src, dst, symlinks=False, ignore=None):
             shutil.copy2(s, d)
 
 
+def num_of_lines_in_file(file_name):
+    lines_num = 0
+    with open(file_name) as f:
+        size = sum(1 for _ in f)
+    return lines_num
+
+
+def save_weights_file(num_folder, current_training_player, left_player, right_player):
+    num_folder += 1
+
+    if current_training_player == CurrentPlayer.left:
+        os.makedirs('trials_sequentially/' + 'left_player_learning' +
+                    str(left_player.num_of_trains) + '/' + str(num_folder), 0755)
+
+        shutil.copy2('model1.h5', 'trials_sequentially/' + 'left_player_learning' +
+                     str(left_player.num_of_trains) + '/' + str(num_folder) + '/model1.h5')
+
+    elif current_training_player == CurrentPlayer.right:
+        os.makedirs('trials_sequentially/' + 'right_player_learning' +
+                    str(right_player.num_of_trains) + '/' + str(num_folder), 0755)
+
+        shutil.copy2('model2.h5', 'trials_sequentially/' + 'right_player_learning' +
+                     str(right_player.num_of_trains) + '/' + str(num_folder) + '/model2.h5')
+
+    return num_folder
+
+
 def train_sequentially(left_player, right_player, first_learning_player):
-    if not os.path.exists('logs'):
-        copytree('logs', 'logs_old')
+    if os.path.exists('logs'):
+        if os.path.exists('old_logs'):
+            shutil.rmtree('old_logs')
+        os.mkdir('old_logs', 0755)
+        copytree('logs', 'old_logs')
         shutil.rmtree('logs')
-    os.makedirs('logs')
+    os.mkdir('logs', 0755)
 
     # moving old trials to old_trials folder
     if os.path.exists('trials_sequentially'):
+        if os.path.exists('old_trials_sequentially'):
+            shutil.rmtree('old_trials_sequentially')
+        os.mkdir('old_trials_sequentially', 0755)
         copytree('trials_sequentially', 'old_trials_sequentially')
         shutil.rmtree('trials_sequentially')
     os.mkdir('trials_sequentially', 0755)
 
+    current_log_folder = ''
     current_training_player = CurrentPlayer.left
     if (first_learning_player == CurrentPlayer.left):
         left_player.num_of_trains += 1
+        current_log_folder = 'logs/' + 'left_player' + \
+                               '_learning' + str(left_player.num_of_trains)
+
     elif (first_learning_player == CurrentPlayer.right):
         current_training_player = CurrentPlayer.right
         right_player.num_of_trains += 1
+        current_log_folder = 'logs/' + 'right_player' + \
+                    '_learning' + str(right_player.num_of_trains)
 
     # open up a game state to communicate with emulator
     game_state = game.GameState()
@@ -237,6 +277,21 @@ def train_sequentially(left_player, right_player, first_learning_player):
             elif (current_training_player == CurrentPlayer.right):
                 loss += right_player.model.train_on_batch(inputs, targets)
 
+            log_file_loss_path = current_log_folder + '/loss'
+            log_file_qmax_path = current_log_folder + '/qmax'
+            num_of_lines_in_loss_file = 0
+            loss_file = None
+
+            if not os.path.exists(current_log_folder):
+                os.mkdir(current_log_folder, 0755)
+            loss_file = open(log_file_loss_path, 'a')
+            num_of_lines_in_loss_file = num_of_lines_in_file(log_file_loss_path)
+
+            #with open(log_file_loss_path, 'a') as loss_file:
+            loss_file.write(str(num_of_lines_in_loss_file + 1) + ' : ' + str(loss) + '\n')
+            loss_file.flush()
+            loss_file.close()
+
         current_state = next_state
         observation_counter = observation_counter + 1
 
@@ -256,22 +311,9 @@ def train_sequentially(left_player, right_player, first_learning_player):
         elapsed_time = (current_time - start_time).total_seconds()
 
         if elapsed_time >= 30 * 60:
-            num_folder += 1
             start_time = datetime.datetime.now()
-
-            if current_training_player == CurrentPlayer.left:
-                os.makedirs('trials_sequentially/' + 'left_player_learning' +
-                            str(left_player.num_of_trains) + '/' + str(num_folder), 0755)
-
-                shutil.copy2('model1.h5', 'trials_sequentially/' + 'left_player_learning' +
-                             str(left_player.num_of_trains) + '/' + str(num_folder) + '/model1.h5')
-
-            elif current_training_player == CurrentPlayer.right:
-                os.makedirs('trials_sequentially/' + 'right_player_learning' +
-                            str(right_player.num_of_trains) + '/' + str(num_folder), 0755)
-
-                shutil.copy2('model2.h5', 'trials_sequentially/' + 'right_player_learning' +
-                             str(right_player.num_of_trains) + '/' + str(num_folder) + '/model2.h5')
+            num_folder = save_weights_file(num_folder, current_training_player,
+                                           left_player, right_player)
 
         if terminal:  # game over
             if score[0] < score[1]:
@@ -281,7 +323,9 @@ def train_sequentially(left_player, right_player, first_learning_player):
                 left_player.num_of_wins_in_a_row += 1
                 right_player.num_of_wins_in_a_row = 0
 
-            if (current_training_player == CurrentPlayer.left and left_player.num_of_wins_in_a_row == 25):
+            if (current_training_player == CurrentPlayer.left and left_player.num_of_wins_in_a_row == 2):
+                _ = save_weights_file(num_folder, current_training_player, left_player, right_player)
+                graphs.plot_loss(current_log_folder, current_log_folder + '/loss')
                 subprocess.call('. ~/flappy/bin/activate && ' + TEST_SEQUENTIAL_COMMAND + ' ' + str(1) +
                                 ' ' + str(left_player.num_of_trains) + ' ' + str(right_player.num_of_trains),
                                 shell=True)
@@ -292,10 +336,13 @@ def train_sequentially(left_player, right_player, first_learning_player):
                 num_folder = 0
                 current_training_player = CurrentPlayer.right
                 right_player.num_of_trains += 1
+                current_log_folder = 'logs/' + 'right_player' + \
+                                     '_learning' + str(right_player.num_of_trains)
                 start_time = datetime.datetime.now()
-                # TODO: saveweights file when changing learning layer
 
-            elif (current_training_player == CurrentPlayer.right and right_player.num_of_wins_in_a_row == 25):
+            elif (current_training_player == CurrentPlayer.right and right_player.num_of_wins_in_a_row == 2):
+                graphs.plot_loss(current_log_folder, current_log_folder + '/loss')
+                _ = save_weights_file(num_folder, current_training_player, left_player, right_player)
                 subprocess.call('. ~/flappy/bin/activate && ' + TEST_SEQUENTIAL_COMMAND + ' ' + str(2) +
                                 ' ' + str(left_player.num_of_trains) + ' ' + str(right_player.num_of_trains),
                                 shell=True)
@@ -306,6 +353,8 @@ def train_sequentially(left_player, right_player, first_learning_player):
                 num_folder = 0
                 current_training_player = CurrentPlayer.left
                 left_player.num_of_trains += 1
+                current_log_folder = 'logs/' + 'left_player' + \
+                                     '_learning' + str(left_player.num_of_trains)
                 start_time = datetime.datetime.now()
 
     print("Episode finished!")
@@ -313,7 +362,7 @@ def train_sequentially(left_player, right_player, first_learning_player):
 
 
 def play_game(args):
-    #if not os.path.isfile('model1.h5') or not os.path.isfile('model2.h5'):
+    # if not os.path.isfile('model1.h5') or not os.path.isfile('model2.h5'):
     #    print("Weights files are missing!")
     left_player = Player()
     left_player.build_model()

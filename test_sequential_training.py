@@ -3,6 +3,7 @@ import sys
 import glob
 import run_test
 import argparse
+import graphs
 import matplotlib.pyplot as plt
 
 
@@ -47,24 +48,30 @@ def testPlayerAfterSwitch(arg_learning_mode, arg_player1_num_of_trains, arg_play
     times = []
     scores = []
     game_scores = []
+    left_player_q_max_list = []
+    left_player_q_max_list = []
 
     for subdir, dirs, files in os.walk(test_player_folder_path):
         dirs.sort(key=lambda f: int(filter(str.isdigit, f)))
         for d in dirs:
-            for subdir2, dirs2, files2 in os.walk(test_player_folder_path + "/" + str(d)):
-                num_of_test += 1
-                if learning_mode == 1:
-                    times, scores = run_test.main(test_player_folder_path + "/" + d + "/" + files2[0],
-                                                  opponent_most_updated_weights_file,
-                                                  num_of_test, test_player_log_file)
-                    game_times = game_times + times
-                    game_scores = game_scores + scores
-                elif learning_mode == 2:
-                    times, scores = run_test.main(opponent_most_updated_weights_file,
-                                                  test_player_folder_path + "/" + d + "/" + files2[0],
-                                                  num_of_test, test_player_log_file)
-                    game_times = game_times + times
-                    game_scores = game_scores + scores
+            #for subdir2, dirs2, files2 in os.walk(test_player_folder_path + "/" + str(d)):
+            num_of_test += 1
+            if learning_mode == 1:
+                times, scores, left_player_q_max_list, right_player_q_max_list =\
+                    run_test.main(1, test_player_folder_path + "/" + str(d) + "/model1.h5",
+                                              opponent_most_updated_weights_file,
+                                              num_of_test, test_player_log_file)
+                game_times = game_times + times
+                game_scores = game_scores + scores
+            elif learning_mode == 2:
+                times, scores, left_player_q_max_list, right_player_q_max_list =\
+                    run_test.main(2, opponent_most_updated_weights_file,
+                                              test_player_folder_path + "/" + str(d) + "/model2.h5",
+                                              num_of_test, test_player_log_file)
+                game_times = game_times + times
+                game_scores = game_scores + scores
+
+    graphs.plot_qmax(test_player_log_file, test_player_log_file + '/qmax')
 
     str_last_learning_player = ''
     last_learning_player_num_of_trains = 0
@@ -72,11 +79,11 @@ def testPlayerAfterSwitch(arg_learning_mode, arg_player1_num_of_trains, arg_play
         str_last_learning_player = 'left'
         last_learning_player_num_of_trains = player1_num_of_trains
     else:
-        learning_mode = 'right'
-        last_learning_player_num_of_trains = player1_num_of_trains
+        str_last_learning_player = 'right'
+        last_learning_player_num_of_trains = player2_num_of_trains
 
     game_numbers.extend(range(1, len(game_times) + 1))
-    plt.plot(game_numbers, game_times, 'b', zorder=1, label='length')
+    plt.plot(game_numbers, game_times, 'b', zorder=1, label='time')
     plt.plot(game_numbers, [gs[0] + gs[1] for gs in game_scores], 'r', zorder=2, label='score')
     plt.ylim(0)
     plt.legend(loc=4)
