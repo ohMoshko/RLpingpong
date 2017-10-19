@@ -37,7 +37,7 @@ from keras.utils.visualize_util import plot
 GAME = 'pong'  # the name of the game being played for log files
 CONFIG = 'nothreshold'
 ACTIONS = 3  # number of valid actions
-GAMMA = 0.9  # decay rate of past observations
+GAMMA = 0.99  # decay rate of past observations
 OBSERVATION = 320.  # timesteps to observe before training
 EXPLORE = 3000000.  # frames over which to anneal epsilon
 FINAL_EPSILON = 0.0001  # final value of epsilon
@@ -85,7 +85,7 @@ def run_test(learnig_player, left_player, right_player, num_of_test, test_player
     left_player_q_max_list = []
     right_player_q_max_list = []
 
-    number_of_games = 2
+    number_of_games = 3
     original_number_of_games = number_of_games
 
     game_start_time = datetime.datetime.now()

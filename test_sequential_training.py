@@ -92,7 +92,7 @@ def testPlayerAfterSwitch(arg_learning_mode, arg_player1_num_of_trains, arg_play
               str(last_learning_player_num_of_trains))
     plt.xlabel('gmae number')
     plt.ylabel('game time [sec] & score of both players')
-    plt.savefig(test_player_log_file + '/game_length_vs_game_num.png')
+    plt.savefig(test_player_log_file + '/game_time_vs_game_num.png')
 
     plt.clf()
     plt.plot(game_numbers, [gs[0] for gs in game_scores], 'bo', zorder=1, label="left player")

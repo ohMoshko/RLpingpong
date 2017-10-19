@@ -87,7 +87,7 @@ def plot_loss(loss_folder, loss_file):
     plt.title('Training: agent loss')
     #plt.show()
 
-    fig4.savefig(loss_folder + 'loss_plot.png')
+    fig4.savefig(loss_folder + '/loss_plot.png')
 
 
 def print_loss2():
@@ -132,7 +132,6 @@ def plot_qmax(qmax_folder, qmax_file):
     total_samples = 0
     for line in q_max_content.splitlines():
         if int(line.split()[0]) == i:
-            print('i = ', i, ' line = ', int(line.split()[0]))
             sum += float(line.split()[2])
             total_samples += 1
         else:
@@ -185,8 +184,6 @@ def plot_qmax2():
     plt.show()
 
     fig5.savefig(GAME + '_Hybrid_q_learn_qmax.png')
-
-
 
 
 def print_correlation():

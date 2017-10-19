@@ -49,8 +49,9 @@ class Player:
         print("The model was successfully built")
         self.model = model
 
-    def load_model_weights(self, weights_file = None):
+    def load_model_weights(self, weights_file):
         if weights_file is not None:
+            print("Loading weights")
             adam = Adam(lr=1e-6)
             self.model.load_weights(weights_file)
             self.model.compile(loss='mse', optimizer=adam)
