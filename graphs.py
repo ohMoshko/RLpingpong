@@ -45,7 +45,7 @@ def print_scores():
     plt.show()
 
     fig1.savefig(GAME + '_Hybrid_q_learn_results.png')
-
+    plt.clf()
 
 def print_rewards():
     # result
@@ -68,7 +68,7 @@ def print_rewards():
     plt.show()
 
     fig2.savefig(GAME + '_Hybrid_q_learn_reward.png')
-
+    plt.clf()
 
 def plot_loss(loss_folder, loss_file):
     # loss
@@ -88,7 +88,7 @@ def plot_loss(loss_folder, loss_file):
     #plt.show()
 
     fig4.savefig(loss_folder + '/loss_plot.png')
-
+    plt.clf()
 
 def print_loss2():
     # loss
@@ -108,7 +108,7 @@ def print_loss2():
     plt.show()
 
     fig4.savefig(GAME + '_Hybrid_q_learn_loss.png')
-
+    plt.clf()
 
 def plot_qmax(qmax_folder, qmax_file):
     # qmax
@@ -153,7 +153,7 @@ def plot_qmax(qmax_folder, qmax_file):
     #plt.show()
 
     fig5.savefig(qmax_folder + '/qmax_plot.png')
-
+    plt.clf()
 
 def plot_qmax2():
     # qmax
@@ -184,7 +184,7 @@ def plot_qmax2():
     plt.show()
 
     fig5.savefig(GAME + '_Hybrid_q_learn_qmax.png')
-
+    plt.clf()
 
 def print_correlation():
     # qmax
@@ -203,7 +203,7 @@ def print_correlation():
     plt.show()
 
     fig5.savefig(GAME + '_Hybrid_q_learn_correlation.png')
-
+    plt.clf()
 
 def main():
     print_correlation()

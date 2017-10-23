@@ -10,7 +10,7 @@ from skimage.viewer import ImageViewer
 import sys
 
 sys.path.append("game/")
-import pong_fun_no_random_start as game
+import pong_fun as game
 import random
 import numpy as np
 from collections import deque

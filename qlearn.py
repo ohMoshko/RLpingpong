@@ -13,7 +13,7 @@ import sys
 import graphs
 
 sys.path.append("game/")
-import pong_fun_no_random_start as game
+import pong_fun as game
 import random
 import numpy as np
 from collections import deque
@@ -41,13 +41,12 @@ IMAGE_NUM_OF_CHANNELS = 4
 NUM_OF_ACTIONS = 3  # number of valid actions: up, down or stay in place
 
 GAME = 'pong'  # the name of the game being played for log files
-# TODO: change back gamma to 0.99
-GAMMA = 0.99  # decay rate of past observations
+GAMMA = 0.95  # decay rate of past observations
 OBSERVATION = 320.  # timesteps to observe before training
 EXPLORE = 3000000.  # frames over which to anneal epsilon
 FINAL_EPSILON = 0.0001  # final value of epsilon
 INITIAL_EPSILON = 0.1  # starting value of epsilon
-REPLAY_MEMORY = 150000  # number of previous transitions to remember
+REPLAY_MEMORY = 50000  # number of previous transitions to remember
 BATCH = 32  # size of one minibatch
 FRAME_PER_ACTION = 1
 
@@ -141,13 +140,13 @@ def train_sequentially(left_player, right_player, first_learning_player):
 
     single_game_frame, r_0, terminal, _, _ = game_state.frame_step(do_nothing, do_nothing)
 
-    single_game_frame_grey = skimage.color.rgb2gray(single_game_frame)
-    single_game_frame_grey = skimage.transform.resize(single_game_frame_grey, (IMAGE_WIDTH, IMAGE_HEIGHT))
-    single_game_frame_grey = skimage.exposure.rescale_intensity(single_game_frame_grey, out_range=(0, 255))
+    single_game_frame = skimage.color.rgb2gray(single_game_frame)
+    single_game_frame = skimage.transform.resize(single_game_frame, (IMAGE_WIDTH, IMAGE_HEIGHT))
+    single_game_frame = skimage.exposure.rescale_intensity(single_game_frame, out_range=(0, 255))
 
     # stacking 4 images together to form a state: 4 images = state
-    current_state = np.stack((single_game_frame_grey, single_game_frame_grey, single_game_frame_grey,
-                              single_game_frame_grey), axis=0)
+    current_state = np.stack((single_game_frame, single_game_frame, single_game_frame,
+                              single_game_frame), axis=0)
 
     current_state = current_state.reshape(1, current_state.shape[0],
                                           current_state.shape[1],
@@ -222,14 +221,14 @@ def train_sequentially(left_player, right_player, first_learning_player):
 
         single_game_frame_grey = skimage.color.rgb2gray(single_game_frame_colored)
         thresh = threshold_otsu(single_game_frame_grey)
-        single_game_frame_binary = single_game_frame_grey > thresh
+        single_game_frame = single_game_frame_grey > thresh
 
-        single_game_frame_binary = skimage.transform.resize(single_game_frame_binary, (80, 80))
-        single_game_frame_binary = skimage.exposure.rescale_intensity(single_game_frame_binary, out_range=(0, 255))
-        single_game_frame_binary = single_game_frame_binary.reshape(1, 1, single_game_frame_binary.shape[0],
-                                                                    single_game_frame_binary.shape[1])
+        single_game_frame = skimage.transform.resize(single_game_frame, (80, 80))
+        single_game_frame = skimage.exposure.rescale_intensity(single_game_frame, out_range=(0, 255))
+        single_game_frame = single_game_frame.reshape(1, 1, single_game_frame.shape[0],
+                                                                    single_game_frame.shape[1])
         # next 4 images = next state
-        next_state = np.append(single_game_frame_binary, current_state[:, :3, :, :], axis=1)
+        next_state = np.append(single_game_frame, current_state[:, :3, :, :], axis=1)
 
         if (current_training_player == CurrentPlayer.left):
             D1.append((current_state, action_index1, reward1, next_state, terminal))
@@ -249,8 +248,8 @@ def train_sequentially(left_player, right_player, first_learning_player):
             elif current_training_player == CurrentPlayer.right:
                 minibatch = random.sample(D2, BATCH)
 
-            inputs = np.zeros((BATCH, next_state.shape[1], next_state.shape[2],
-                               next_state.shape[3]))  # 32, 4, 80, 80
+            inputs = np.zeros((BATCH, current_state.shape[1], current_state.shape[2],
+                               current_state.shape[3]))  # 32, 4, 80, 80
             targets = np.zeros((inputs.shape[0], NUM_OF_ACTIONS))  # 32, 2
 
             # experience replay
@@ -280,26 +279,26 @@ def train_sequentially(left_player, right_player, first_learning_player):
             elif (current_training_player == CurrentPlayer.right):
                 loss += right_player.model.train_on_batch(inputs, targets)
 
-                # log_file_loss_path = current_log_folder + '/loss'
-                # log_file_qmax_path = current_log_folder + '/qmax'
-                # num_of_lines_in_loss_file = 0
-                # loss_file = None
-                #
-                # if not os.path.exists(current_log_folder):
-                #     os.mkdir(current_log_folder, 0755)
-                #
-                # elapsed_time_loss = (current_time - start_time_loss).total_seconds()
-                #
-                # if elapsed_time_loss >= 1 * 60:
-                #     episode_number += 1
-                #     start_time_loss = datetime.datetime.now()
-                #     loss_file = open(log_file_loss_path, 'a')
-                #     num_of_lines_in_loss_file = num_of_lines_in_file(log_file_loss_path)
-                #
-                #     #with open(log_file_loss_path, 'a') as loss_file:
-                #     loss_file.write(str(episode_number) + ' : ' + str(loss) + '\n')
-                #     loss_file.flush()
-                #     loss_file.close()
+            # log_file_loss_path = current_log_folder + '/loss'
+            # log_file_qmax_path = current_log_folder + '/qmax'
+            # num_of_lines_in_loss_file = 0
+            # loss_file = None
+            #
+            # if not os.path.exists(current_log_folder):
+            #     os.mkdir(current_log_folder, 0755)
+            #
+            # elapsed_time_loss = (current_time - start_time_loss).total_seconds()
+            #
+            # if elapsed_time_loss >= 1 * 60:
+            #     episode_number += 1
+            #     start_time_loss = datetime.datetime.now()
+            #     loss_file = open(log_file_loss_path, 'a')
+            #     num_of_lines_in_loss_file = num_of_lines_in_file(log_file_loss_path)
+            #
+            #     #with open(log_file_loss_path, 'a') as loss_file:
+            #     loss_file.write(str(episode_number) + ' : ' + str(loss) + '\n')
+            #     loss_file.flush()
+            #     loss_file.close()
 
         current_state = next_state
         observation_counter = observation_counter + 1
@@ -319,7 +318,7 @@ def train_sequentially(left_player, right_player, first_learning_player):
         current_time = datetime.datetime.now()
         elapsed_time = (current_time - start_time).total_seconds()
 
-        if elapsed_time >= 3 * 60:
+        if elapsed_time >= 15 * 60:
             start_time = datetime.datetime.now()
             num_folder = save_weights_file(num_folder, current_training_player,
                                            left_player, right_player)
@@ -351,6 +350,7 @@ def train_sequentially(left_player, right_player, first_learning_player):
                 episode_number = 0
                 D1.clear()
                 start_time = datetime.datetime.now()
+                break
 
             elif (current_training_player == CurrentPlayer.right and right_player.num_of_wins_in_a_row == 10):
                 # graphs.plot_loss(current_log_folder, current_log_folder + '/loss')
@@ -371,6 +371,7 @@ def train_sequentially(left_player, right_player, first_learning_player):
                 episode_number = 0
                 D2.clear()
                 start_time = datetime.datetime.now()
+                break
 
     print("Episode finished!")
     print("************************")

@@ -22,7 +22,11 @@ def testPlayerAfterSwitch(arg_learning_mode, arg_player1_num_of_trains, arg_play
         opponent = 'right'
         opponent_num_of_trains = player2_num_of_trains
         test_player_folder_path = "./trials_sequentially/" + "left_player" + \
-                                  "_learning" + str(player1_num_of_trains)
+                                   "_learning" + str(player1_num_of_trains)
+        #test_player_folder_path = "./trials_sequentially/" + "player" + str(learning_mode) +\
+        #                          "learning" + str(player1_num_of_trains)
+        print ('DEBUG: test_player_folder_path: ', test_player_folder_path, '\n')
+
         test_player_log_file = "logs/" + "left_player" + \
                                "_learning" + str(player1_num_of_trains)
 
@@ -31,16 +35,26 @@ def testPlayerAfterSwitch(arg_learning_mode, arg_player1_num_of_trains, arg_play
         opponent = 'left'
         opponent_num_of_trains = player1_num_of_trains
         test_player_folder_path = "./trials_sequentially/" + "right_player" + \
-                                  "_learning" + str(player2_num_of_trains)
+                                   "_learning" + str(player2_num_of_trains)
+        #test_player_folder_path = "./trials_sequentially/" + "player" + str(learning_mode) + \
+        #                          "learning" + str(player2_num_of_trains)
+
         test_player_log_file = "logs/" + "right_player" + \
                                "_learning" + str(player2_num_of_trains)
 
-    opponent_path_to_most_updated_weights_folder = "./trials_sequentially/" + opponent + "_player" + \
-                                                   "_learning" + str(opponent_num_of_trains)
+    # opponent_path_to_most_updated_weights_folder = "./trials_sequentially/" + opponent + "_player" + \
+    #                                                "_learning" + str(opponent_num_of_trains)
 
-    list_of_files = glob.glob(opponent_path_to_most_updated_weights_folder + '/*/*')
+    #opponent_path_to_most_updated_weights_folder = "./trials_sequentially/" + "player" + str(opponents_number) +\
+    #                                               "learning" + str(opponent_num_of_trains)
 
-    opponent_most_updated_weights_file = max(list_of_files, key=os.path.getctime)
+    #print ('DEBUG: opponent_path_to_most_updated_weights_folder',
+    #       opponent_path_to_most_updated_weights_folder, '\n')
+
+    #list_of_files = glob.glob(opponent_path_to_most_updated_weights_folder + '/*/*')
+
+    #opponent_most_updated_weights_file = max(list_of_files, key=os.path.getctime)
+    opponent_most_updated_weights_file = 'model' + str(opponents_number) + '.h5'
 
     num_of_test = 0
     game_times = []
@@ -83,30 +97,27 @@ def testPlayerAfterSwitch(arg_learning_mode, arg_player1_num_of_trains, arg_play
         last_learning_player_num_of_trains = player2_num_of_trains
 
     game_numbers.extend(range(1, len(game_times) + 1))
-    plt.plot(game_numbers, game_times, 'b', zorder=1, label='time')
-    plt.plot(game_numbers, [gs[0] + gs[1] for gs in game_scores], 'r', zorder=2, label='score')
+    plt.plot(game_numbers, game_times, 'b')
+    # plt.plot(game_numbers, [gs[0] + gs[1] for gs in game_scores], 'r', zorder=2, label='score')
     plt.ylim(0)
-    plt.legend(loc=4)
-    plt.title('Test: Game time and scores of ' + str_last_learning_player +
-              ' player sequentially training number ' +
-              str(last_learning_player_num_of_trains))
+    # plt.legend(loc=4)
+    plt.title('Gamma = 0.95: Game Time')
     plt.xlabel('gmae number')
-    plt.ylabel('game time [sec] & score of both players')
+    plt.ylabel('game time [sec]')
     plt.savefig(test_player_log_file + '/game_time_vs_game_num.png')
-
     plt.clf()
+
     plt.plot(game_numbers, [gs[0] for gs in game_scores], 'bo', zorder=1, label="left player")
     plt.plot(game_numbers, [gs[0] for gs in game_scores], 'k')
     plt.plot(game_numbers, [gs[1] for gs in game_scores], 'ro', zorder=2, label="right player")
     plt.plot(game_numbers, [gs[1] for gs in game_scores], 'k')
     plt.legend(loc=1)
-    plt.title('Test: Game scores of ' + str_last_learning_player +
-              ' player sequentially training number ' +
-              str(last_learning_player_num_of_trains))
+    plt.title('Gamma = 0.95: Game Scores')
     plt.xlabel('gmae number')
     plt.ylabel('game scores')
     plt.yticks(range(1, 25))
     plt.savefig(test_player_log_file + '/game_scores_vs_game_num.png')
+    plt.clf()
 
 
 def main(arg_learning_mode, arg_player1_num_of_trains, arg_player2_num_of_trains):

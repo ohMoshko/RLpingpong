@@ -26,30 +26,30 @@ class Player:
 
     def build_model(self):
         print("Building the model")
-        model = Sequential()
-        model.add(
+        self.model = Sequential()
+        self.model.add(
             Convolution2D(32, 8, 8, subsample=(4, 4), init=lambda shape, name: normal(shape, scale=0.01, name=name),
                           border_mode='same', input_shape=(IMAGE_NUM_OF_CHANNELS, IMAGE_WIDTH, IMAGE_HEIGHT)))
-        model.add(Activation('relu'))
-        model.add(
+        self.model.add(Activation('relu'))
+        self.model.add(
             Convolution2D(64, 4, 4, subsample=(2, 2), init=lambda shape, name: normal(shape, scale=0.01, name=name),
                           border_mode='same'))
-        model.add(Activation('relu'))
-        model.add(
+        self.model.add(Activation('relu'))
+        self.model.add(
             Convolution2D(64, 3, 3, subsample=(1, 1), init=lambda shape, name: normal(shape, scale=0.01, name=name),
                           border_mode='same'))
-        model.add(Activation('relu'))
-        model.add(Flatten())
-        model.add(Dense(512, init=lambda shape, name: normal(shape, scale=0.01, name=name)))
-        model.add(Activation('relu'))
-        model.add(Dense(NUM_OF_ACTIONS, init=lambda shape, name: normal(shape, scale=0.01, name=name)))
+        self.model.add(Activation('relu'))
+        self.model.add(Flatten())
+        self.model.add(Dense(512, init=lambda shape, name: normal(shape, scale=0.01, name=name)))
+        self.model.add(Activation('relu'))
+        self.model.add(Dense(NUM_OF_ACTIONS, init=lambda shape, name: normal(shape, scale=0.01, name=name)))
 
         adam = Adam(lr=1e-6)
-        model.compile(loss='mse', optimizer=adam)
+        self.model.compile(loss='mse', optimizer=adam)
         print("The model was successfully built")
-        self.model = model
 
     def load_model_weights(self, weights_file):
+        print(self, ' ', weights_file)
         if weights_file is not None:
             print("Loading weights")
             adam = Adam(lr=1e-6)
