@@ -2,7 +2,7 @@ import os
 import sys
 
 import run_test
-from graphs import plot_scores, plot_times, plot_qmax
+from graph_utils import plot_scores, plot_times, plot_qmax
 
 
 def testPlayerAfterSwitch(arg_learning_mode, arg_player1_num_of_trains, arg_player2_num_of_trains):
