@@ -231,8 +231,6 @@ def trainNetwork(model1,model2,args):
         if len(D2) > REPLAY_MEMORY:
             D2.popleft()
 
-
-
         if observation_counter > OBSERVE:
             # sample a minibatch to train on
             minibatch1 = random.sample(D1, BATCH)
@@ -289,7 +287,7 @@ def trainNetwork(model1,model2,args):
 
         player1_curr_state = player1_next_state
         player2_curr_state = player2_next_state
-        observation_counter =  observation_counter + 1
+        observation_counter = observation_counter + 1
 
 
         # save progress every 10000 iterations

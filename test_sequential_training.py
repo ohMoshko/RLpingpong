@@ -1,10 +1,8 @@
 import os
 import sys
-import glob
+
 import run_test
-import argparse
-import graphs
-import matplotlib.pyplot as plt
+from graphs import plot_scores, plot_times, plot_qmax
 
 
 def testPlayerAfterSwitch(arg_learning_mode, arg_player1_num_of_trains, arg_player2_num_of_trains):
@@ -22,9 +20,7 @@ def testPlayerAfterSwitch(arg_learning_mode, arg_player1_num_of_trains, arg_play
         opponent = 'right'
         opponent_num_of_trains = player2_num_of_trains
         test_player_folder_path = "./trials_sequentially/" + "left_player" + \
-                                   "_learning" + str(player1_num_of_trains)
-        #test_player_folder_path = "./trials_sequentially/" + "player" + str(learning_mode) +\
-        #                          "learning" + str(player1_num_of_trains)
+                                  "_learning" + str(player1_num_of_trains)
         print ('DEBUG: test_player_folder_path: ', test_player_folder_path, '\n')
 
         test_player_log_file = "logs/" + "left_player" + \
@@ -35,25 +31,17 @@ def testPlayerAfterSwitch(arg_learning_mode, arg_player1_num_of_trains, arg_play
         opponent = 'left'
         opponent_num_of_trains = player1_num_of_trains
         test_player_folder_path = "./trials_sequentially/" + "right_player" + \
-                                   "_learning" + str(player2_num_of_trains)
-        #test_player_folder_path = "./trials_sequentially/" + "player" + str(learning_mode) + \
-        #                          "learning" + str(player2_num_of_trains)
-
+                                  "_learning" + str(player2_num_of_trains)
         test_player_log_file = "logs/" + "right_player" + \
                                "_learning" + str(player2_num_of_trains)
 
     # opponent_path_to_most_updated_weights_folder = "./trials_sequentially/" + opponent + "_player" + \
     #                                                "_learning" + str(opponent_num_of_trains)
-
-    #opponent_path_to_most_updated_weights_folder = "./trials_sequentially/" + "player" + str(opponents_number) +\
+    # opponent_path_to_most_updated_weights_folder = "./trials_sequentially/" + "player" + str(opponents_number) +\
     #                                               "learning" + str(opponent_num_of_trains)
+    # list_of_files = glob.glob(opponent_path_to_most_updated_weights_folder + '/*/*')
+    # opponent_most_updated_weights_file = max(list_of_files, key=os.path.getctime)
 
-    #print ('DEBUG: opponent_path_to_most_updated_weights_folder',
-    #       opponent_path_to_most_updated_weights_folder, '\n')
-
-    #list_of_files = glob.glob(opponent_path_to_most_updated_weights_folder + '/*/*')
-
-    #opponent_most_updated_weights_file = max(list_of_files, key=os.path.getctime)
     opponent_most_updated_weights_file = 'model' + str(opponents_number) + '.h5'
 
     num_of_test = 0
@@ -68,62 +56,32 @@ def testPlayerAfterSwitch(arg_learning_mode, arg_player1_num_of_trains, arg_play
     for subdir, dirs, files in os.walk(test_player_folder_path):
         dirs.sort(key=lambda f: int(filter(str.isdigit, f)))
         for d in dirs:
-            #for subdir2, dirs2, files2 in os.walk(test_player_folder_path + "/" + str(d)):
             num_of_test += 1
             if learning_mode == 1:
-                times, scores, left_player_q_max_list, right_player_q_max_list =\
+                times, scores, left_player_q_max_list, right_player_q_max_list = \
                     run_test.main(1, test_player_folder_path + "/" + str(d) + "/model1.h5",
-                                              opponent_most_updated_weights_file,
-                                              num_of_test, test_player_log_file)
+                                  opponent_most_updated_weights_file,
+                                  num_of_test, test_player_log_file)
                 game_times = game_times + times
                 game_scores = game_scores + scores
             elif learning_mode == 2:
-                times, scores, left_player_q_max_list, right_player_q_max_list =\
+                times, scores, left_player_q_max_list, right_player_q_max_list = \
                     run_test.main(2, opponent_most_updated_weights_file,
-                                              test_player_folder_path + "/" + str(d) + "/model2.h5",
-                                              num_of_test, test_player_log_file)
+                                  test_player_folder_path + "/" + str(d) + "/model2.h5",
+                                  num_of_test, test_player_log_file)
                 game_times = game_times + times
                 game_scores = game_scores + scores
 
-    graphs.plot_qmax(test_player_log_file, test_player_log_file + '/qmax')
-
-    str_last_learning_player = ''
-    last_learning_player_num_of_trains = 0
-    if learning_mode == 1:
-        str_last_learning_player = 'left'
-        last_learning_player_num_of_trains = player1_num_of_trains
-    else:
-        str_last_learning_player = 'right'
-        last_learning_player_num_of_trains = player2_num_of_trains
-
-    game_numbers.extend(range(1, len(game_times) + 1))
-    plt.plot(game_numbers, game_times, 'b')
-    # plt.plot(game_numbers, [gs[0] + gs[1] for gs in game_scores], 'r', zorder=2, label='score')
-    plt.ylim(0)
-    # plt.legend(loc=4)
-    plt.title('Hit Reward = 0.2+negative: Game Time')
-    plt.xlabel('game number')
-    plt.ylabel('game time [sec]')
-    plt.savefig(test_player_log_file + '/game_time_vs_game_num.png')
-    plt.clf()
-
-    plt.plot(game_numbers, [gs[0] for gs in game_scores], 'bo', zorder=1, label="left player")
-    plt.plot(game_numbers, [gs[0] for gs in game_scores], 'k')
-    plt.plot(game_numbers, [gs[1] for gs in game_scores], 'ro', zorder=2, label="right player")
-    plt.plot(game_numbers, [gs[1] for gs in game_scores], 'k')
-    plt.legend(loc=1)
-    plt.title('Hit Reward = 0.2+negative: Game Score')
-    plt.xlabel('gmae number')
-    plt.ylabel('game scores')
-    plt.yticks(range(1, 25))
-    plt.savefig(test_player_log_file + '/game_scores_vs_game_num.png')
-    plt.clf()
+    plot_qmax(test_player_log_file, test_player_log_file + '/qmax')
+    plot_scores(game_numbers, game_scores, test_player_log_file)
+    plot_times(game_numbers, game_times, test_player_log_file)
 
     game_over_log_file = open(test_player_log_file + "/game_over_log", 'r')
     game_over_log_file_content = game_over_log_file.read()
     times = [round(float(line.split()[5]), 2) for line in game_over_log_file_content.splitlines()]
     avg = sum(times) / len(times)
     print('average game time: ', avg)
+
 
 def main(arg_learning_mode, arg_player1_num_of_trains, arg_player2_num_of_trains):
     testPlayerAfterSwitch(arg_learning_mode, arg_player1_num_of_trains, arg_player2_num_of_trains)

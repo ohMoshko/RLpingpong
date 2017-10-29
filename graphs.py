@@ -2,10 +2,7 @@
 # !/usr/bin/env python
 from __future__ import print_function
 
-import matplotlib.pyplot as plt
 import argparse
-import skimage as skimage
-from skimage import transform, color, exposure
 from skimage.transform import rotate
 from skimage.viewer import ImageViewer
 import sys
@@ -13,62 +10,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import linecache
 import numpy as np
-from numpy import random
-
-from matplotlib.ticker import NullFormatter  # useful for `logit` scale
 
 import matplotlib.pyplot as plt
 from operator import itemgetter
 
 GAME = "pong"
 
-
-def print_scores():
-    # scores
-    logfile1 = open('logs_pong/resultsfile_1.txt', 'r')
-
-    results = logfile1.read()
-    points1 = [(int(line.split()[0]), float(line.split()[7])) for line in results.splitlines()]
-    plt.plot([p[0] for p in points1], [p[1] for p in points1], 'o', zorder=1, label="per game")
-
-    logfile2 = open('logs_pong/averagefile_1.txt', 'r')
-    average = logfile2.read()
-    points2 = [(int(line.split()[0]), float(line.split()[3])) for line in average.splitlines()]
-    plt.plot([p[0] for p in points2], [p[1] for p in points2], lw=2, zorder=2, label="average")
-    plt.legend(loc=4)
-
-    fig1 = plt.figure(1)
-    plt.xlabel('Epoch')
-    plt.ylabel('win percentage')
-
-    plt.title('Pong - agent scores - Hybrid q-learn ')
-    plt.show()
-
-    fig1.savefig(GAME + '_Hybrid_q_learn_results.png')
-    plt.clf()
-
-def print_rewards():
-    # result
-    logfile3 = open('logs_pong/rewardfile_1.txt', 'r')
-    reward = logfile3.read()
-    points3 = [(int(line.split()[0]), float(line.split()[3])) for line in reward.splitlines()]
-    plt.plot([p[0] for p in points3], [p[1] for p in points3], 'o', zorder=1, label="per game")
-
-    logfile4 = open('logs_pong/reward_finalfile_1.txt', 'r')
-    average_reward = logfile4.read()
-    points4 = [(int(line.split()[0]), float(line.split()[3])) for line in average_reward.splitlines()]
-
-    plt.plot([p[0] for p in points4], [p[1] for p in points4], lw=2, zorder=2, label="average")
-    fig2 = plt.figure(1)
-    plt.xlabel('Epoch')
-    plt.ylabel('reward')
-    plt.legend(loc=4)
-
-    plt.title('pong - agent reward - Hybrid q-learn ')
-    plt.show()
-
-    fig2.savefig(GAME + '_Hybrid_q_learn_reward.png')
-    plt.clf()
 
 def plot_loss(loss_folder, loss_file):
     # loss
@@ -90,25 +37,6 @@ def plot_loss(loss_folder, loss_file):
     fig4.savefig(loss_folder + '/loss_plot.png')
     plt.clf()
 
-def print_loss2():
-    # loss
-
-    logfile8 = open('logs_pong/loss_avgfile_1.txt', 'r')
-
-    loss_avg = logfile8.read()
-    points8 = [(int(line.split()[0]), float(line.split()[4])) for line in loss_avg.splitlines()]
-
-    plt.plot([p[0] for p in points8], [p[1] for p in points8], lw=2, zorder=2, label="average loss")
-
-    fig4 = plt.figure(1)
-    plt.xlabel('Epoch')
-    plt.ylabel('loss')
-
-    plt.title('Pong - agent average loss - Hybrid q-learn ')
-    plt.show()
-
-    fig4.savefig(GAME + '_Hybrid_q_learn_loss.png')
-    plt.clf()
 
 def plot_qmax(qmax_folder, qmax_file):
     # qmax
@@ -155,36 +83,33 @@ def plot_qmax(qmax_folder, qmax_file):
     fig5.savefig(qmax_folder + '/qmax_plot.png')
     plt.clf()
 
-def plot_qmax2():
-    # qmax
 
-    logfile7 = open('logs_pong/qfile_1.txt', 'r')
-
-    q_max = logfile7.read()
-    points7 = [(int(line.split()[0]), float(line.split()[3])) for line in q_max.splitlines()]
-    print(len(points7, ))
-    points7 = points7[::5]
-    print(len(points7, ))
-    plt.plot([p[0] for p in points7], [p[1] for p in points7], '+', zorder=1, label="per step")
-
-    logfile6 = open('logs_pong/q_averagefile_1.txt', 'r')
-
-    q_max_avg = logfile6.read()
-    points6 = [(int(line.split()[0]), float(line.split()[5])) for line in q_max_avg.splitlines()]
-
-    plt.plot([p[0] for p in points6], [p[1] for p in points6], lw=2, zorder=2, label="average qmax")
-
-    plt.legend(loc=4)
-
-    fig5 = plt.figure(1)
-    plt.xlabel('Epoch')
-    plt.ylabel('qmax')
-
-    plt.title('Pong - agent q max - Hybrid q-learn ')
-    plt.show()
-
-    fig5.savefig(GAME + '_Hybrid_q_learn_qmax.png')
+def plot_scores(game_numbers, game_scores, test_player_log_file):
+    plt.plot(game_numbers, [gs[0] for gs in game_scores], 'bo', zorder=1, label="left player")
+    plt.plot(game_numbers, [gs[0] for gs in game_scores], 'k')
+    plt.plot(game_numbers, [gs[1] for gs in game_scores], 'ro', zorder=2, label="right player")
+    plt.plot(game_numbers, [gs[1] for gs in game_scores], 'k')
+    plt.legend(loc=1)
+    plt.title('Hit Reward = 0.2+negative: Game Score')
+    plt.xlabel('game number')
+    plt.ylabel('game scores')
+    plt.yticks(range(1, 25))
+    plt.savefig(test_player_log_file + '/game_scores_vs_game_num.png')
     plt.clf()
+
+
+def plot_times(game_numbers, game_times, test_player_log_file):
+    game_numbers.extend(range(1, len(game_times) + 1))
+    plt.plot(game_numbers, game_times, 'b')
+    # plt.plot(game_numbers, [gs[0] + gs[1] for gs in game_scores], 'r', zorder=2, label='score')
+    plt.ylim(0)
+    # plt.legend(loc=4)
+    plt.title('Hit Reward = 0.2+negative: Game Time')
+    plt.xlabel('game number')
+    plt.ylabel('game time [sec]')
+    plt.savefig(test_player_log_file + '/game_time_vs_game_num.png')
+    plt.clf()
+
 
 def print_correlation():
     # qmax
@@ -204,6 +129,55 @@ def print_correlation():
 
     fig5.savefig(GAME + '_Hybrid_q_learn_correlation.png')
     plt.clf()
+
+def print_scores():
+    # scores
+    logfile1 = open('logs_pong/resultsfile_1.txt', 'r')
+
+    results = logfile1.read()
+    points1 = [(int(line.split()[0]), float(line.split()[7])) for line in results.splitlines()]
+    plt.plot([p[0] for p in points1], [p[1] for p in points1], 'o', zorder=1, label="per game")
+
+    logfile2 = open('logs_pong/averagefile_1.txt', 'r')
+    average = logfile2.read()
+    points2 = [(int(line.split()[0]), float(line.split()[3])) for line in average.splitlines()]
+    plt.plot([p[0] for p in points2], [p[1] for p in points2], lw=2, zorder=2, label="average")
+    plt.legend(loc=4)
+
+    fig1 = plt.figure(1)
+    plt.xlabel('Epoch')
+    plt.ylabel('win percentage')
+
+    plt.title('Pong - agent scores - Hybrid q-learn ')
+    plt.show()
+
+    fig1.savefig(GAME + '_Hybrid_q_learn_results.png')
+    plt.clf()
+
+
+def print_rewards():
+    # result
+    logfile3 = open('logs_pong/rewardfile_1.txt', 'r')
+    reward = logfile3.read()
+    points3 = [(int(line.split()[0]), float(line.split()[3])) for line in reward.splitlines()]
+    plt.plot([p[0] for p in points3], [p[1] for p in points3], 'o', zorder=1, label="per game")
+
+    logfile4 = open('logs_pong/reward_finalfile_1.txt', 'r')
+    average_reward = logfile4.read()
+    points4 = [(int(line.split()[0]), float(line.split()[3])) for line in average_reward.splitlines()]
+
+    plt.plot([p[0] for p in points4], [p[1] for p in points4], lw=2, zorder=2, label="average")
+    fig2 = plt.figure(1)
+    plt.xlabel('Epoch')
+    plt.ylabel('reward')
+    plt.legend(loc=4)
+
+    plt.title('pong - agent reward - Hybrid q-learn ')
+    plt.show()
+
+    fig2.savefig(GAME + '_Hybrid_q_learn_reward.png')
+    plt.clf()
+
 
 def main():
     print_correlation()
