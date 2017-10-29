@@ -101,8 +101,8 @@ def testPlayerAfterSwitch(arg_learning_mode, arg_player1_num_of_trains, arg_play
     # plt.plot(game_numbers, [gs[0] + gs[1] for gs in game_scores], 'r', zorder=2, label='score')
     plt.ylim(0)
     # plt.legend(loc=4)
-    plt.title('Gamma = 0.95: Game Time')
-    plt.xlabel('gmae number')
+    plt.title('Hit Reward = 0.2+negative: Game Time')
+    plt.xlabel('game number')
     plt.ylabel('game time [sec]')
     plt.savefig(test_player_log_file + '/game_time_vs_game_num.png')
     plt.clf()
@@ -112,13 +112,18 @@ def testPlayerAfterSwitch(arg_learning_mode, arg_player1_num_of_trains, arg_play
     plt.plot(game_numbers, [gs[1] for gs in game_scores], 'ro', zorder=2, label="right player")
     plt.plot(game_numbers, [gs[1] for gs in game_scores], 'k')
     plt.legend(loc=1)
-    plt.title('Gamma = 0.95: Game Scores')
+    plt.title('Hit Reward = 0.2+negative: Game Score')
     plt.xlabel('gmae number')
     plt.ylabel('game scores')
     plt.yticks(range(1, 25))
     plt.savefig(test_player_log_file + '/game_scores_vs_game_num.png')
     plt.clf()
 
+    game_over_log_file = open(test_player_log_file + "/game_over_log", 'r')
+    game_over_log_file_content = game_over_log_file.read()
+    times = [round(float(line.split()[5]), 2) for line in game_over_log_file_content.splitlines()]
+    avg = sum(times) / len(times)
+    print('average game time: ', avg)
 
 def main(arg_learning_mode, arg_player1_num_of_trains, arg_player2_num_of_trains):
     testPlayerAfterSwitch(arg_learning_mode, arg_player1_num_of_trains, arg_player2_num_of_trains)

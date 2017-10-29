@@ -12,6 +12,7 @@ from skimage.filters import threshold_otsu
 import sys
 import graphs
 
+import random
 sys.path.append("game/")
 import pong_fun as game
 import random
@@ -41,9 +42,9 @@ IMAGE_NUM_OF_CHANNELS = 4
 NUM_OF_ACTIONS = 3  # number of valid actions: up, down or stay in place
 
 GAME = 'pong'  # the name of the game being played for log files
-GAMMA = 0.95  # decay rate of past observations
+GAMMA = 0.99  # decay rate of past observations
 OBSERVATION = 320.  # timesteps to observe before training
-EXPLORE = 3000000.  # frames over which to anneal epsilon
+EXPLORE = 3000000.  # frames over which to anneal gma
 FINAL_EPSILON = 0.0001  # final value of epsilon
 INITIAL_EPSILON = 0.1  # starting value of epsilon
 REPLAY_MEMORY = 50000  # number of previous transitions to remember
@@ -106,15 +107,18 @@ def train_sequentially(left_player, right_player, first_learning_player):
     os.mkdir('logs', 0755)
 
     # moving old trials to old_trials folder
-    if os.path.exists('trials_sequentially'):
-        if os.path.exists('old_trials_sequentially'):
-            shutil.rmtree('old_trials_sequentially')
-        os.mkdir('old_trials_sequentially', 0755)
-        copytree('trials_sequentially', 'old_trials_sequentially')
-        shutil.rmtree('trials_sequentially')
-    os.mkdir('trials_sequentially', 0755)
+    # TODO: remove comment from trials folder delete and make!!!!!!
+    #if os.path.exists('trials_sequentially'):
+    #    if os.path.exists('old_trials_sequentially'):
+    #        shutil.rmtree('old_trials_sequentially')
+    #    os.mkdir('old_trials_sequentially', 0755)
+    #    copytree('trials_sequentially', 'old_trials_sequentially')
+    #    shutil.rmtree('trials_sequentially')
+    #os.mkdir('trials_sequentially', 0755)
 
     current_log_folder = ''
+    # TODO: delete!!!!!!
+    left_player.num_of_trains = 1
     if (first_learning_player == CurrentPlayer.left):
         current_training_player = CurrentPlayer.left
         left_player.num_of_trains += 1
@@ -174,12 +178,27 @@ def train_sequentially(left_player, right_player, first_learning_player):
         reward2 = 0
         action_right_player = np.zeros([NUM_OF_ACTIONS])
 
+        exploration_counter = 0
+        exploration_flag = 0
         # choose an action epsilon greedy
         if (observation_counter % FRAME_PER_ACTION) == 0:
             if current_training_player == CurrentPlayer.left:
+                #q = left_player.model.predict(current_state)  # input a stack of 4 images, get the prediction
+                #max_Q = np.argmax(q)
+                #moves_options = [0, 1, 2]
+                #moves_options.remove(max_Q)
+                #if random.random() <= epsilon or exploration_flag == 1:
                 if random.random() <= epsilon:
+                    #q = left_player.model.predict(current_state)  # input a stack of 4 images, get the prediction
+                    #max_Q = np.argmax(q)
+                    #exploration_flag = 1
+                    #exploration_counter +=1
                     action_index1 = random.randrange(NUM_OF_ACTIONS)
+                    #action_index1 = random.choice(moves_options)
                     action_left_player[action_index1] = 1
+                    #if exploration_counter > 10:
+                    #    exploration_flag = 0
+                    #    exploration_counter = 0
                 else:
                     q = left_player.model.predict(current_state)  # input a stack of 4 images, get the prediction
                     max_Q = np.argmax(q)
@@ -318,7 +337,7 @@ def train_sequentially(left_player, right_player, first_learning_player):
         current_time = datetime.datetime.now()
         elapsed_time = (current_time - start_time).total_seconds()
 
-        if elapsed_time >= 15 * 60:
+        if elapsed_time >= 5 * 60:
             start_time = datetime.datetime.now()
             num_folder = save_weights_file(num_folder, current_training_player,
                                            left_player, right_player)
@@ -331,12 +350,12 @@ def train_sequentially(left_player, right_player, first_learning_player):
                 left_player.num_of_wins_in_a_row += 1
                 right_player.num_of_wins_in_a_row = 0
 
-            if (current_training_player == CurrentPlayer.left and left_player.num_of_wins_in_a_row == 10):
+            if (current_training_player == CurrentPlayer.left and left_player.num_of_wins_in_a_row == 20):
                 _ = save_weights_file(num_folder, current_training_player, left_player, right_player)
                 # graphs.plot_loss(current_log_folder, current_log_folder + '/loss')
-                subprocess.call('. ~/flappy/bin/activate && ' + TEST_SEQUENTIAL_COMMAND + ' ' + str(1) +
-                                ' ' + str(left_player.num_of_trains) + ' ' + str(right_player.num_of_trains),
-                                shell=True)
+                #subprocess.call('. ~/flappy/bin/activate && ' + TEST_SEQUENTIAL_COMMAND + ' ' + str(1) +
+                #                 ' ' + str(left_player.num_of_trains) + ' ' + str(right_player.num_of_trains),
+                #                 shell=True)
 
                 left_player.num_of_wins_in_a_row = 0
                 right_player.num_of_wins_in_a_row = 0
@@ -350,14 +369,14 @@ def train_sequentially(left_player, right_player, first_learning_player):
                 episode_number = 0
                 D1.clear()
                 start_time = datetime.datetime.now()
-                break
+                #break
 
-            elif (current_training_player == CurrentPlayer.right and right_player.num_of_wins_in_a_row == 10):
+            elif (current_training_player == CurrentPlayer.right and right_player.num_of_wins_in_a_row == 20):
                 # graphs.plot_loss(current_log_folder, current_log_folder + '/loss')
                 _ = save_weights_file(num_folder, current_training_player, left_player, right_player)
-                subprocess.call('. ~/flappy/bin/activate && ' + TEST_SEQUENTIAL_COMMAND + ' ' + str(2) +
-                                ' ' + str(left_player.num_of_trains) + ' ' + str(right_player.num_of_trains),
-                                shell=True)
+                #subprocess.call('. ~/flappy/bin/activate && ' + TEST_SEQUENTIAL_COMMAND + ' ' + str(2) +
+                #                 ' ' + str(left_player.num_of_trains) + ' ' + str(right_player.num_of_trains),
+                #                 shell=True)
 
                 left_player.num_of_wins_in_a_row = 0
                 right_player.num_of_wins_in_a_row = 0
@@ -371,7 +390,7 @@ def train_sequentially(left_player, right_player, first_learning_player):
                 episode_number = 0
                 D2.clear()
                 start_time = datetime.datetime.now()
-                break
+                #break
 
     print("Episode finished!")
     print("************************")

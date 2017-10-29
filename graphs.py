@@ -149,7 +149,7 @@ def plot_qmax(qmax_folder, qmax_file):
     plt.xlabel('Match')
     plt.ylabel('qmax')
 
-    plt.title('Test: agent q max')
+    plt.title('Hit Reward = 0.2+negative: Agent q max')
     #plt.show()
 
     fig5.savefig(qmax_folder + '/qmax_plot.png')
