@@ -1,33 +1,28 @@
 #!/usr/bin/env python
 # Modified from http://www.pygame.org/project-Very+simple+Pong+game-816-.html
 
-import numpy
-import pygame
-import os
-from pygame.locals import *
-from sys import exit
-import random
-import pygame.surfarray as surfarray
-import matplotlib.pyplot as plt
 import datetime
+import os
+import random
+import pygame
+from pygame.locals import *
 
 position = 5, 325
 os.environ['SDL_VIDEO_WINDOW_POS'] = str(position[0]) + "," + str(position[1])
 pygame.init()
 screen = pygame.display.set_mode((640, 480), 0, 32)
-# screen = pygame.display.set_mode((640,480),pygame.NOFRAME)
-# Creating 2 bars, a ball and background.
-# background
+# Creating 2 bars, a ball and a background:
+# background:
 back = pygame.Surface((640, 480))
 background = back.convert()
 background.fill((0, 0, 0))
-# bars
+# bars:
 bar = pygame.Surface((10, 50))
 bar1 = bar.convert()
 bar1.fill((0, 255, 255))
 bar2 = bar.convert()
 bar2.fill((255, 255, 255))
-# ball
+# ball:
 circ_sur = pygame.Surface((15, 15))
 circ = pygame.draw.circle(circ_sur, (255, 255, 255), (15 / 2, 15 / 2), 15 / 2)
 circle = circ_sur.convert()
@@ -39,9 +34,10 @@ AI_SPEED = 15.
 HIT_REWARD = 0.2
 LOSE_REWARD = -1
 WIN_REWARD = 1
-HIT_REWARD_AFTER_SWITCH = -0.01
+HIT_REWARD_AFTER_SWITCH = -0.01  # switching when reaching 100 hits
 OTHER_REWARD = 0
 HITS_UNTIL_SWITCH = 100
+
 
 class GameState:
     def __init__(self):

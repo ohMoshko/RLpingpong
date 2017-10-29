@@ -1,11 +1,10 @@
 import os
 import sys
-
 import run_test
-from graph_utils import plot_scores, plot_times, plot_qmax
+from graph_utils import plot_scores, plot_times, plot_qmax, print_average_game_time
 
 
-def testPlayerAfterSwitch(arg_learning_mode, arg_player1_num_of_trains, arg_player2_num_of_trains):
+def test_player_after_switch(arg_learning_mode, arg_player1_num_of_trains, arg_player2_num_of_trains):
     opponents_number = 0
     learning_mode = int(arg_learning_mode)
     player1_num_of_trains = int(arg_player1_num_of_trains)
@@ -75,16 +74,11 @@ def testPlayerAfterSwitch(arg_learning_mode, arg_player1_num_of_trains, arg_play
     plot_qmax(test_player_log_file, test_player_log_file + '/qmax')
     plot_scores(game_numbers, game_scores, test_player_log_file)
     plot_times(game_numbers, game_times, test_player_log_file)
-
-    game_over_log_file = open(test_player_log_file + "/game_over_log", 'r')
-    game_over_log_file_content = game_over_log_file.read()
-    times = [round(float(line.split()[5]), 2) for line in game_over_log_file_content.splitlines()]
-    avg = sum(times) / len(times)
-    print('average game time: ', avg)
+    print_average_game_time(test_player_log_file)
 
 
 def main(arg_learning_mode, arg_player1_num_of_trains, arg_player2_num_of_trains):
-    testPlayerAfterSwitch(arg_learning_mode, arg_player1_num_of_trains, arg_player2_num_of_trains)
+    test_player_after_switch(arg_learning_mode, arg_player1_num_of_trains, arg_player2_num_of_trains)
 
 
 if __name__ == "__main__":

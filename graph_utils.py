@@ -111,6 +111,14 @@ def plot_times(game_numbers, game_times, test_player_log_file):
     plt.clf()
 
 
+def print_average_game_time(test_player_log_file):
+    game_over_log_file = open(test_player_log_file + "/game_over_log", 'r')
+    game_over_log_file_content = game_over_log_file.read()
+    times = [round(float(line.split()[5]), 2) for line in game_over_log_file_content.splitlines()]
+    avg = sum(times) / len(times)
+    print('average game time: ', avg)
+
+
 def print_correlation():
     # qmax
     logfile6 = open('logs_pong/Corelation_ratio1.txt', 'r')
@@ -183,8 +191,6 @@ def main():
     print_correlation()
     print_scores()
     print_rewards()
-    print_loss()
-    print_qmax()
 
 
 if __name__ == "__main__":

@@ -1,38 +1,17 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
-import matplotlib.pyplot as plt
 import argparse
 import skimage as skimage
-from skimage import transform, color, exposure
-from skimage.transform import rotate
-from skimage.viewer import ImageViewer
 import sys
 
 sys.path.append("game/")
 import pong_fun as game
-import random
 import numpy as np
-from collections import deque
-
-import json
-from keras import initializations
-from keras.initializations import normal, identity
-from keras.models import model_from_json
-from keras.models import Sequential
-from keras.layers.core import Dense, Dropout, Activation, Flatten
-from keras.layers.convolutional import Convolution2D, MaxPooling2D
-from keras.optimizers import SGD, Adam
-
-import pygame
 from pygame.locals import *
-from time import gmtime, strftime
 import os.path
 import datetime
-import shutil
 from player import Player
-
-from keras.utils.visualize_util import plot
 
 GAME = 'pong'  # the name of the game being played for log files
 CONFIG = 'nothreshold'
