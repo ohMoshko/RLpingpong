@@ -51,6 +51,8 @@ class GameState:
         self.current_time = datetime.datetime.now()
         self.last_score_time = datetime.datetime.now()
         self.no_learning_time = 0
+        self.left_player_hit_reward_counter = 0
+        self.right_player_hit_reward_counter = 0
 
     def init_after_game_is_stuck(self):
         self.last_score_time = self.current_time
@@ -64,9 +66,7 @@ class GameState:
     def frame_step(self, input_vect, input_vect2):
         global score
         pygame.event.pump()
-        left_player_hit_reward_counter = 0
         left_player_reward = 0
-        right_player_hit_reward_counter = 0
         right_player_reward = 0
 
         if sum(input_vect) != 1:
@@ -119,10 +119,10 @@ class GameState:
                     self.no_learning_time = self.no_learning_time + 90
                 self.circle_x = 20.
                 self.speed_x = -self.speed_x
-                if left_player_hit_reward_counter >= HITS_UNTIL_SWITCH:
+                if self.left_player_hit_reward_counter >= HITS_UNTIL_SWITCH:
                     left_player_reward = HIT_REWARD_AFTER_SWITCH
                 else:
-                    left_player_hit_reward_counter += 1
+                    self.left_player_hit_reward_counter += 1
                     left_player_reward = HIT_REWARD
 
         if self.circle_x >= self.bar2_x - 15.:
@@ -133,17 +133,17 @@ class GameState:
                     self.no_learning_time = self.no_learning_time + 90
                 self.circle_x = 605.
                 self.speed_x = -self.speed_x
-                if right_player_hit_reward_counter >= HITS_UNTIL_SWITCH:
+                if self.right_player_hit_reward_counter >= HITS_UNTIL_SWITCH:
                     right_player_reward = HIT_REWARD_AFTER_SWITCH
                 else:
-                    right_player_hit_reward_counter += 1
+                    self.right_player_hit_reward_counter += 1
                     right_player_reward = HIT_REWARD
 
         # scoring
         if self.circle_x < 5.:
             self.last_score_time = datetime.datetime.now()
             self.bar2_score += 1
-            if left_player_hit_reward_counter >= HITS_UNTIL_SWITCH:
+            if self.left_player_hit_reward_counter >= HITS_UNTIL_SWITCH:
                 left_player_reward = LOSE_REWARD
                 right_player_reward = WIN_REWARD
             else:
@@ -163,7 +163,7 @@ class GameState:
         elif self.circle_x > 620.:
             self.last_score_time = datetime.datetime.now()
             self.bar1_score += 1
-            if right_player_hit_reward_counter >= HITS_UNTIL_SWITCH:
+            if self.right_player_hit_reward_counter >= HITS_UNTIL_SWITCH:
                 left_player_reward = WIN_REWARD
                 right_player_reward = LOSE_REWARD
             else:

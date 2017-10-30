@@ -39,9 +39,9 @@ ai_speed = 15.
 HIT_REWARD = 0.25
 LOSE_REWARD = -1
 SCORE_REWARD = 1
-LENGTH_REWARD = -0.1
-
-MAXIMUM_HITS = 5
+HIT_REWARD_AFTER_MAXIMUM_HITS = -0.1
+INITIAL_HIT_COUNTER_VALUE = 0
+MAXIMUM_HITS_PER_POINT = 5
 
 class GameState:
     def __init__(self):
@@ -55,6 +55,8 @@ class GameState:
         self.current_time = datetime.datetime.now()
         self.last_score_time = datetime.datetime.now()
         self.no_learning_time = 0
+        self.left_player_hits_counter = 0
+        self.right_player_hits_counter = 0
 
     def init_after_game_is_stuck(self):
         self.last_score_time = self.current_time
@@ -67,9 +69,9 @@ class GameState:
 
     def frame_step(self, input_vect, input_vect2):
         global score
-        hit_reward_counter = 0
         pygame.event.pump()
-        reward = 0
+        left_player_reward = 0
+        right_player_reward = 0
 
         if sum(input_vect) != 1:
             raise ValueError('Multiple input actions!')
@@ -122,11 +124,11 @@ class GameState:
                 # self.speed_y = 30.
                 self.circle_x = 20.
                 self.speed_x = -self.speed_x
-                if hit_reward_counter >= MAXIMUM_HITS:
-                    reward = LENGTH_REWARD
+                if self.left_player_hits_counter >= MAXIMUM_HITS_PER_POINT:
+                    left_player_reward = HIT_REWARD_AFTER_MAXIMUM_HITS
                 else:
-                    hit_reward_counter += 1
-                    reward = HIT_REWARD
+                    self.left_player_hits_counter += 1
+                    left_player_reward = HIT_REWARD
 
         if self.circle_x >= self.bar2_x - 15.:
             if self.circle_y >= self.bar2_y - 7.5 and self.circle_y <= self.bar2_y + 42.5:
@@ -137,17 +139,20 @@ class GameState:
                 # self.speed_y = 70.
                 self.circle_x = 605.
                 self.speed_x = -self.speed_x
-                #if hit_reward_counter >= MAXIMUM_HITS:
-                #    reward = 0
-                #else:
-                #    hit_reward_counter += 1
-                #    reward = HIT_REWARD
+                if self.right_player_hits_counter >= MAXIMUM_HITS_PER_POINT:
+                    right_player_reward = HIT_REWARD_AFTER_MAXIMUM_HITS
+                else:
+                    self.right_player_hits_counter += 1
+                    right_player_reward = HIT_REWARD
 
         # scoring
         if self.circle_x < 5.:
             self.last_score_time = datetime.datetime.now()
             self.bar2_score += 1
-            reward = LOSE_REWARD
+            left_player_reward = LOSE_REWARD
+            right_player_reward = SCORE_REWARD
+            self.left_player_hits_counter = 0
+            self.right_player_hits_counter = 0
             self.circle_x, self.circle_y = 307.5, 232.5
             self.speed_x = -self.speed_x
             # added randomality after a hit for learning purposes
@@ -163,7 +168,10 @@ class GameState:
         elif self.circle_x > 620.:
             self.last_score_time = datetime.datetime.now()
             self.bar1_score += 1
-            reward = SCORE_REWARD
+            right_player_reward = LOSE_REWARD
+            left_player_reward = SCORE_REWARD
+            self.left_player_hits_counter = 0
+            self.right_player_hits_counter = 0
             self.circle_x, self.circle_y = 320., 232.5
             self.speed_x = -self.speed_x
             # added randomality after a hit for learning purposes
@@ -205,4 +213,4 @@ class GameState:
         else:
             score = self.bar1_score, self.bar2_score
 
-        return image_data, reward, terminal, score, no_learning_time_to_return
+        return image_data, left_player_reward, right_player_reward, terminal, score, no_learning_time_to_return

@@ -100,7 +100,7 @@ def train_sequentially(left_player, right_player, first_learning_player):
     do_nothing = np.zeros(NUM_OF_ACTIONS)
     do_nothing[0] = 1
 
-    single_game_frame, r_0, terminal, _, _ = game_state.frame_step(do_nothing, do_nothing)
+    single_game_frame, _, _,  terminal, _, _ = game_state.frame_step(do_nothing, do_nothing)
 
     single_game_frame = skimage.color.rgb2gray(single_game_frame)
     single_game_frame = skimage.transform.resize(single_game_frame, (IMAGE_WIDTH, IMAGE_HEIGHT))
@@ -190,11 +190,8 @@ def train_sequentially(left_player, right_player, first_learning_player):
         if (epsilon > FINAL_EPSILON) and (observation_counter > OBSERVATION):
             epsilon -= (INITIAL_EPSILON - FINAL_EPSILON) / EXPLORE
 
-        single_game_frame_colored, reward1, terminal, score, _ = \
+        single_game_frame_colored, reward1, reward2, terminal, score, _ = \
             game_state.frame_step(action_left_player, action_right_player)
-
-        if current_training_player == CurrentPlayer.right:
-            reward2 = -reward1
 
         single_game_frame_grey = skimage.color.rgb2gray(single_game_frame_colored)
         thresh = threshold_otsu(single_game_frame_grey)
@@ -308,7 +305,7 @@ def train_sequentially(left_player, right_player, first_learning_player):
                 left_player.num_of_wins_in_a_row += 1
                 right_player.num_of_wins_in_a_row = 0
 
-            if (current_training_player == CurrentPlayer.left and left_player.num_of_wins_in_a_row == 20):
+            if (current_training_player == CurrentPlayer.left and left_player.num_of_wins_in_a_row == 15):
                 _ = save_weights_file(num_folder, current_training_player, left_player, right_player)
                 # plot_loss(current_log_folder, current_log_folder + '/loss')
                 # subprocess.call('. ~/flappy/bin/activate && ' + TEST_SEQUENTIAL_COMMAND + ' ' + str(1) +
@@ -327,9 +324,9 @@ def train_sequentially(left_player, right_player, first_learning_player):
                 episode_number = 0
                 D1.clear()
                 start_time = datetime.datetime.now()
-                # break
+                break
 
-            elif (current_training_player == CurrentPlayer.right and right_player.num_of_wins_in_a_row == 20):
+            elif (current_training_player == CurrentPlayer.right and right_player.num_of_wins_in_a_row == 15):
                 # plot_loss(current_log_folder, current_log_folder + '/loss')
                 _ = save_weights_file(num_folder, current_training_player, left_player, right_player)
                 # subprocess.call('. ~/flappy/bin/activate && ' + TEST_SEQUENTIAL_COMMAND + ' ' + str(2) +
@@ -348,7 +345,7 @@ def train_sequentially(left_player, right_player, first_learning_player):
                 episode_number = 0
                 D2.clear()
                 start_time = datetime.datetime.now()
-                # break
+                break
 
     print("Episode finished!")
     print("************************")
