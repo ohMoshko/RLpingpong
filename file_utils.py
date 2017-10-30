@@ -1,12 +1,12 @@
 import os
 import shutil
-from aenum import Enum
 
 
-class CurrentPlayer(Enum):
-    left = 1
-    right = 2
-    both = 3
+class CurrentPlayer:
+    def __init__(self):
+        pass
+
+    Left, Right, Both = range(1, 4)
 
 
 def copytree(src, dst, symlinks=False, ignore=None):
@@ -28,15 +28,14 @@ def num_of_lines_in_file(file_name):
 
 def save_weights_file(num_folder, current_training_player, left_player, right_player):
     num_folder += 1
-
-    if current_training_player == CurrentPlayer.left or current_training_player == CurrentPlayer.both:
+    if current_training_player == CurrentPlayer.Left or current_training_player == CurrentPlayer.Both:
         os.makedirs('trials_sequentially/' + 'left_player_learning' +
                     str(left_player.num_of_trains) + '/' + str(num_folder), 0755)
 
         shutil.copy2('./model1.h5', 'trials_sequentially/' + 'left_player_learning' +
                      str(left_player.num_of_trains) + '/' + str(num_folder) + '/model1.h5')
 
-    elif current_training_player == CurrentPlayer.right or current_training_player == CurrentPlayer.both:
+    elif current_training_player == CurrentPlayer.Right or current_training_player == CurrentPlayer.Both:
         os.makedirs('trials_sequentially/' + 'right_player_learning' +
                     str(right_player.num_of_trains) + '/' + str(num_folder), 0755)
 
