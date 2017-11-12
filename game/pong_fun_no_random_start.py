@@ -1,15 +1,11 @@
 #!/usr/bin/env python
 # Modified from http://www.pygame.org/project-Very+simple+Pong+game-816-.html
 
-import numpy
-import pygame
-import os
-from pygame.locals import *
-from sys import exit
-import random
-import pygame.surfarray as surfarray
-import matplotlib.pyplot as plt
 import datetime
+import os
+import random
+import pygame
+from pygame.locals import *
 
 position = 5, 325
 os.environ['SDL_VIDEO_WINDOW_POS'] = str(position[0]) + "," + str(position[1])

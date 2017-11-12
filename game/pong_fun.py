@@ -1,15 +1,11 @@
 #!/usr/bin/env python
 # Modified from http://www.pygame.org/project-Very+simple+Pong+game-816-.html
 
-import numpy
-import pygame
-import os
-from pygame.locals import *
-from sys import exit
-import random
-import pygame.surfarray as surfarray
-import matplotlib.pyplot as plt
 import datetime
+import os
+import random
+import pygame
+from pygame.locals import *
 
 position = 5, 325
 os.environ['SDL_VIDEO_WINDOW_POS'] = str(position[0]) + "," + str(position[1])
@@ -35,13 +31,14 @@ circle.set_colorkey((0, 0, 0))
 font = pygame.font.SysFont("calibri", 40)
 
 ai_speed = 15.
-
-HIT_REWARD = 0.25
+ai_speed2 = 7.
+HIT_REWARD = 0.3
 LOSE_REWARD = -1
 SCORE_REWARD = 1
-HIT_REWARD_AFTER_MAXIMUM_HITS = -0.1
-INITIAL_HIT_COUNTER_VALUE = 0
-MAXIMUM_HITS_PER_POINT = 5
+#HIT_REWARD_AFTER_MAXIMUM_HITS = -0.1
+#INITIAL_HIT_COUNTER_VALUE = 0
+#MAXIMUM_HITS_PER_POINT = 5
+
 
 class GameState:
     def __init__(self):
@@ -92,17 +89,17 @@ class GameState:
         screen.blit(bar1, (self.bar1_x, self.bar1_y))
         screen.blit(bar2, (self.bar2_x, self.bar2_y))
         screen.blit(circle, (self.circle_x, self.circle_y))
-        screen.blit(self.score1, (250., 210.))
-        screen.blit(self.score2, (380., 210.))
+        #screen.blit(self.score1, (250., 210.))
+        #screen.blit(self.score2, (380., 210.))
 
         self.bar1_y += self.bar1_move
 
         if input_vect2[1] == 1:  # Key up
-            self.bar2_y -= ai_speed
+            self.bar2_y -= ai_speed2
         elif input_vect2[2] == 1:  # Key down
-            self.bar2_y += ai_speed
+            self.bar2_y += ai_speed2
         else:  # don't move
-            self.bar2_y = 0
+            self.bar2_y += 0
 
         # bounds of movement
         if self.bar1_y >= 420.:
@@ -124,11 +121,11 @@ class GameState:
                 # self.speed_y = 30.
                 self.circle_x = 20.
                 self.speed_x = -self.speed_x
-                if self.left_player_hits_counter >= MAXIMUM_HITS_PER_POINT:
-                    left_player_reward = HIT_REWARD_AFTER_MAXIMUM_HITS
-                else:
-                    self.left_player_hits_counter += 1
-                    left_player_reward = HIT_REWARD
+                #if self.left_player_hits_counter >= MAXIMUM_HITS_PER_POINT:
+                #    left_player_reward = HIT_REWARD_AFTER_MAXIMUM_HITS
+                #else:
+                #    self.left_player_hits_counter += 1
+                left_player_reward = HIT_REWARD
 
         if self.circle_x >= self.bar2_x - 15.:
             if self.circle_y >= self.bar2_y - 7.5 and self.circle_y <= self.bar2_y + 42.5:
@@ -139,11 +136,11 @@ class GameState:
                 # self.speed_y = 70.
                 self.circle_x = 605.
                 self.speed_x = -self.speed_x
-                if self.right_player_hits_counter >= MAXIMUM_HITS_PER_POINT:
-                    right_player_reward = HIT_REWARD_AFTER_MAXIMUM_HITS
-                else:
-                    self.right_player_hits_counter += 1
-                    right_player_reward = HIT_REWARD
+                #if self.right_player_hits_counter >= MAXIMUM_HITS_PER_POINT:
+                 #   right_player_reward = HIT_REWARD_AFTER_MAXIMUM_HITS
+                #else:
+                #    self.right_player_hits_counter += 1
+                right_player_reward = HIT_REWARD
 
         # scoring
         if self.circle_x < 5.:
@@ -195,8 +192,11 @@ class GameState:
         self.circle_x += self.speed_x
         self.circle_y += self.speed_y
 
+        #screen.blit(background, (250., 210.))
+        #screen.blit(background, (380., 210.))
         image_data = pygame.surfarray.array3d(pygame.display.get_surface())
-
+        screen.blit(self.score1, (250., 210.))
+        screen.blit(self.score2, (380., 210.))
         pygame.display.update()
 
         terminal = False

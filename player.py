@@ -1,11 +1,8 @@
-import json
-from keras import initializations
-from keras.initializations import normal, identity
-from keras.models import model_from_json
+from keras.initializations import normal
+from keras.layers.convolutional import Convolution2D
+from keras.layers.core import Dense, Activation, Flatten
 from keras.models import Sequential
-from keras.layers.core import Dense, Dropout, Activation, Flatten
-from keras.layers.convolutional import Convolution2D, MaxPooling2D
-from keras.optimizers import SGD , Adam
+from keras.optimizers import Adam
 
 IMAGE_WIDTH = 80
 IMAGE_HEIGHT = 80

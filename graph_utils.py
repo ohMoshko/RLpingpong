@@ -32,7 +32,7 @@ def plot_loss(loss_folder, loss_file):
     plt.ylabel('loss')
 
     plt.title('Training: agent loss')
-    #plt.show()
+    # plt.show()
 
     fig4.savefig(loss_folder + '/loss_plot.png')
     plt.clf()
@@ -63,7 +63,7 @@ def plot_qmax(qmax_folder, qmax_file):
             sum += float(line.split()[2])
             total_samples += 1
         else:
-            average_q_max.append((i, sum/total_samples))
+            average_q_max.append((i, sum / total_samples))
             total_samples = 1
             i += 1
             sum = float(line.split()[2])
@@ -77,8 +77,8 @@ def plot_qmax(qmax_folder, qmax_file):
     plt.xlabel('Match')
     plt.ylabel('qmax')
 
-    plt.title('Hit Reward = 0.2+negative: Agent q max')
-    #plt.show()
+    plt.title('epsilon=0.0005: Agent q max')
+    # plt.show()
 
     fig5.savefig(qmax_folder + '/qmax_plot.png')
     plt.clf()
@@ -90,7 +90,7 @@ def plot_scores(game_numbers, game_scores, test_player_log_file):
     plt.plot(game_numbers, [gs[1] for gs in game_scores], 'ro', zorder=2, label="right player")
     plt.plot(game_numbers, [gs[1] for gs in game_scores], 'k')
     plt.legend(loc=1)
-    plt.title('Hit Reward = 0.2+negative: Game Score')
+    plt.title('epsilon=0.0005: Game Score')
     plt.xlabel('game number')
     plt.ylabel('game scores')
     plt.yticks(range(1, 25))
@@ -98,16 +98,40 @@ def plot_scores(game_numbers, game_scores, test_player_log_file):
     plt.clf()
 
 
+def plot_scores_from_log_file(log_file_path, log_file):
+
+    game_over_log_file = open(log_file_path + '/' + log_file, 'r')
+    log_file_content = game_over_log_file.read()
+    game_scores = [(int(((line.split()[1]).replace("(", "")).replace(",", "")),
+                      int((line.split()[2]).replace(")", ""))) for line in log_file_content.splitlines()]
+
+    game_numbers = range(1, len(game_scores) + 1)
+    plot_scores(game_numbers, game_scores, log_file_path)
+    game_over_log_file.close()
+    plt.clf()
+
+
 def plot_times(game_numbers, game_times, test_player_log_file):
-    game_numbers.extend(range(1, len(game_times) + 1))
     plt.plot(game_numbers, game_times, 'b')
     # plt.plot(game_numbers, [gs[0] + gs[1] for gs in game_scores], 'r', zorder=2, label='score')
     plt.ylim(0)
     # plt.legend(loc=4)
-    plt.title('Hit Reward = 0.2+negative: Game Time')
+    plt.title('epsilon=0.0005: Game Time')
     plt.xlabel('game number')
     plt.ylabel('game time [sec]')
     plt.savefig(test_player_log_file + '/game_time_vs_game_num.png')
+    plt.clf()
+
+
+def plot_times_from_log_file(log_file_path, log_file):
+
+    game_over_log_file = open(log_file_path + '/' + log_file, 'r')
+    log_file_content = game_over_log_file.read()
+    game_times = [float(line.split()[5]) for line in log_file_content.splitlines()]
+
+    game_numbers = range(1, len(game_times) + 1)
+    plot_times(game_numbers, game_times, log_file_path)
+    game_over_log_file.close()
     plt.clf()
 
 
@@ -137,6 +161,7 @@ def print_correlation():
 
     fig5.savefig(GAME + '_Hybrid_q_learn_correlation.png')
     plt.clf()
+
 
 def print_scores():
     # scores
@@ -187,11 +212,11 @@ def print_rewards():
     plt.clf()
 
 
-def main():
-    print_correlation()
-    print_scores()
-    print_rewards()
+def main(log_files_path, log_file_name):
+    plot_scores_from_log_file(log_files_path, log_file_name)
+    plot_times_from_log_file(log_files_path, log_file_name)
+    plot_qmax(log_files_path, log_files_path + '/qmax')
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main(sys.argv[1], sys.argv[2]))

@@ -71,6 +71,7 @@ def test_player_after_switch(arg_learning_mode, arg_player1_num_of_trains, arg_p
                 game_times = game_times + times
                 game_scores = game_scores + scores
 
+    game_numbers.extend(range(1, len(game_times) + 1))
     plot_qmax(test_player_log_file, test_player_log_file + '/qmax')
     plot_scores(game_numbers, game_scores, test_player_log_file)
     plot_times(game_numbers, game_times, test_player_log_file)

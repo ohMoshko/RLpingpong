@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
-import argparse
-import skimage as skimage
 import sys
-
+import skimage as skimage
+from skimage import transform, color, exposure
 sys.path.append("game/")
 import pong_fun as game
 import numpy as np
-from pygame.locals import *
 import os.path
 import datetime
 from player import Player
@@ -19,8 +17,6 @@ ACTIONS = 3  # number of valid actions
 GAMMA = 0.99  # decay rate of past observations
 OBSERVATION = 320.  # timesteps to observe before training
 EXPLORE = 3000000.  # frames over which to anneal epsilon
-FINAL_EPSILON = 0.0001  # final value of epsilon
-INITIAL_EPSILON = 0.1  # starting value of epsilon
 REPLAY_MEMORY = 50000  # number of previous transitions to remember
 BATCH = 32  # size of minibatch
 
@@ -43,12 +39,15 @@ def run_test(learnig_player, left_player, right_player, num_of_test, test_player
 
     # Prevents error in frame step. Both bars stay in place.
     do_nothing[0] = 1
-    game_image_data, r_0, terminal, _, _ = game_state.frame_step(do_nothing, do_nothing)
+    game_image_data, _, r_0, terminal, _, _ = game_state.frame_step(do_nothing, do_nothing)
 
     # image processing
     game_image_data = skimage.color.rgb2gray(game_image_data)
     game_image_data = skimage.transform.resize(game_image_data, (80, 80))
     game_image_data = skimage.exposure.rescale_intensity(game_image_data, out_range=(0, 255))
+
+    for i in range(80):  # erasing the line in the right side of the screen
+        game_image_data[79, i] = 0
 
     # initiating first 4 frames to the same frame
     last_4_frames = np.stack((game_image_data, game_image_data, game_image_data, game_image_data), axis=0)
@@ -64,7 +63,9 @@ def run_test(learnig_player, left_player, right_player, num_of_test, test_player
     left_player_q_max_list = []
     right_player_q_max_list = []
 
-    number_of_games = 3
+    number_of_games = 10
+    #number_of_games = 10 #for epsilons tests
+
     original_number_of_games = number_of_games
 
     game_start_time = datetime.datetime.now()
@@ -104,7 +105,7 @@ def run_test(learnig_player, left_player, right_player, num_of_test, test_player
                 qmax_log_file.write(str(num_of_test) + ' : ' + str(q_max2) + '\n')
 
         # in order for us to see the game
-        image_data_colored1, _, terminal, score, no_learning_time = game_state.frame_step(actions_vector1,
+        image_data_colored1, _, _, terminal, score, no_learning_time = game_state.frame_step(actions_vector1,
                                                                                           actions_vector2)
 
         game_over = terminal
@@ -139,6 +140,9 @@ def run_test(learnig_player, left_player, right_player, num_of_test, test_player
         x_t1 = skimage.color.rgb2gray(image_data_colored1)
         x_t1 = skimage.transform.resize(x_t1, (80, 80))
         x_t1 = skimage.exposure.rescale_intensity(x_t1, out_range=(0, 255))
+
+        for i in range(80):  # erasing the line in the right side of the screen
+            x_t1[79, i] = 0
 
         x_t1 = x_t1.reshape(1, 1, x_t1.shape[0], x_t1.shape[1])
         last_4_frames1 = np.append(x_t1, last_4_frames[:, :3, :, :], axis=1)

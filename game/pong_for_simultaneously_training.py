@@ -31,10 +31,10 @@ font = pygame.font.SysFont("calibri", 40)
 
 AI_SPEED = 15.
 
-HIT_REWARD = 0.2
+HIT_REWARD = 0.3
 LOSE_REWARD = -1
 WIN_REWARD = 1
-HIT_REWARD_AFTER_SWITCH = -0.01  # switching when reaching 100 hits
+HIT_REWARD_AFTER_SWITCH = 0  # switching when reaching 100 hits
 OTHER_REWARD = 0
 HITS_UNTIL_SWITCH = 100
 
@@ -119,11 +119,8 @@ class GameState:
                     self.no_learning_time = self.no_learning_time + 90
                 self.circle_x = 20.
                 self.speed_x = -self.speed_x
-                if self.left_player_hit_reward_counter >= HITS_UNTIL_SWITCH:
-                    left_player_reward = HIT_REWARD_AFTER_SWITCH
-                else:
-                    self.left_player_hit_reward_counter += 1
-                    left_player_reward = HIT_REWARD
+                self.left_player_hit_reward_counter += 1
+                left_player_reward = HIT_REWARD
 
         if self.circle_x >= self.bar2_x - 15.:
             if self.circle_y >= self.bar2_y - 7.5 and self.circle_y <= self.bar2_y + 42.5:
@@ -133,11 +130,8 @@ class GameState:
                     self.no_learning_time = self.no_learning_time + 90
                 self.circle_x = 605.
                 self.speed_x = -self.speed_x
-                if self.right_player_hit_reward_counter >= HITS_UNTIL_SWITCH:
-                    right_player_reward = HIT_REWARD_AFTER_SWITCH
-                else:
-                    self.right_player_hit_reward_counter += 1
-                    right_player_reward = HIT_REWARD
+                self.right_player_hit_reward_counter += 1
+                right_player_reward = HIT_REWARD
 
         # scoring
         if self.circle_x < 5.:
