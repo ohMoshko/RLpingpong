@@ -463,11 +463,12 @@ def train_simultaneously(left_player, right_player):
 
         single_game_frame = skimage.transform.resize(single_game_frame, (80, 80))
         single_game_frame = skimage.exposure.rescale_intensity(single_game_frame, out_range=(0, 255))
-        single_game_frame = single_game_frame.reshape(1, 1, single_game_frame.shape[0],
-                                                      single_game_frame.shape[1])
 
         for i in range(80):  # erasing the line in the right side of the screen
             single_game_frame[79, i] = 0
+
+        single_game_frame = single_game_frame.reshape(1, 1, single_game_frame.shape[0],
+                                                      single_game_frame.shape[1])
 
         # next 4 images = next state
         next_state = np.append(single_game_frame, current_state[:, :3, :, :], axis=1)
@@ -579,12 +580,12 @@ def play_game(args):
     right_player.build_model()
     right_player.load_model_weights('model2.h5')
 
-    if int(args['first_learning_player']) == 1:
-        first_learning_player = CurrentPlayer.Left
-    elif int(args['first_learning_player']) == 2:
-        first_learning_player = CurrentPlayer.Right
-
     if args['learning_mode'] == 'SEQUENTIALLY':  # one after another (left and then right and then left...)
+        if int(args['first_learning_player']) == 1:
+            first_learning_player = CurrentPlayer.Left
+        elif int(args['first_learning_player']) == 2:
+            first_learning_player = CurrentPlayer.Right
+
         train_sequentially(left_player, right_player, first_learning_player)
     elif args['learning_mode'] == 'SIMULTANEOUSLY':
         train_simultaneously(left_player, right_player)
