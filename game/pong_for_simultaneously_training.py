@@ -31,12 +31,13 @@ font = pygame.font.SysFont("calibri", 40)
 
 AI_SPEED = 15.
 
+INITIAL_HIT_REWARD = 1
 HIT_REWARD = 0.3
 LOSE_REWARD = -1
 WIN_REWARD = 1
 HIT_REWARD_AFTER_SWITCH = 0  # switching when reaching 100 hits
 OTHER_REWARD = 0
-HITS_UNTIL_SWITCH = 100
+HITS_UNTIL_SWITCH = 150
 
 
 class GameState:
@@ -51,8 +52,8 @@ class GameState:
         self.current_time = datetime.datetime.now()
         self.last_score_time = datetime.datetime.now()
         self.no_learning_time = 0
-        self.left_player_hit_reward_counter = 0
-        self.right_player_hit_reward_counter = 0
+        self.left_player_hits_counter = 0
+        self.right_player_hits_counter = 0
 
     def init_after_game_is_stuck(self):
         self.last_score_time = self.current_time
@@ -98,7 +99,7 @@ class GameState:
         elif input_vect2[2] == 1:  # Key down
             self.bar2_y += AI_SPEED
         else:  # don't move
-            self.bar2_y = 0
+            self.bar2_y += 0
 
         # bounds of movement
         if self.bar1_y >= 420.:
@@ -119,8 +120,11 @@ class GameState:
                     self.no_learning_time = self.no_learning_time + 90
                 self.circle_x = 20.
                 self.speed_x = -self.speed_x
-                self.left_player_hit_reward_counter += 1
-                left_player_reward = HIT_REWARD
+                if self.left_player_hits_counter >= HITS_UNTIL_SWITCH:
+                    left_player_reward = HIT_REWARD
+                else:
+                    self.left_player_hits_counter += 1
+                    left_player_reward = INITIAL_HIT_REWARD
 
         if self.circle_x >= self.bar2_x - 15.:
             if self.circle_y >= self.bar2_y - 7.5 and self.circle_y <= self.bar2_y + 42.5:
@@ -130,14 +134,17 @@ class GameState:
                     self.no_learning_time = self.no_learning_time + 90
                 self.circle_x = 605.
                 self.speed_x = -self.speed_x
-                self.right_player_hit_reward_counter += 1
-                right_player_reward = HIT_REWARD
+                if self.right_player_hits_counter >= HITS_UNTIL_SWITCH:
+                    right_player_reward = HIT_REWARD
+                else:
+                    self.right_player_hits_counter += 1
+                    right_player_reward = INITIAL_HIT_REWARD
 
         # scoring
         if self.circle_x < 5.:
             self.last_score_time = datetime.datetime.now()
             self.bar2_score += 1
-            if self.left_player_hit_reward_counter >= HITS_UNTIL_SWITCH:
+            if self.left_player_hits_counter >= HITS_UNTIL_SWITCH:
                 left_player_reward = LOSE_REWARD
                 right_player_reward = WIN_REWARD
             else:
@@ -157,7 +164,7 @@ class GameState:
         elif self.circle_x > 620.:
             self.last_score_time = datetime.datetime.now()
             self.bar1_score += 1
-            if self.right_player_hit_reward_counter >= HITS_UNTIL_SWITCH:
+            if self.right_player_hits_counter >= HITS_UNTIL_SWITCH:
                 left_player_reward = WIN_REWARD
                 right_player_reward = LOSE_REWARD
             else:

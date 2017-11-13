@@ -50,23 +50,22 @@ class CurrentPlayer:
 
 
 def train_sequentially(left_player, right_player, first_learning_player):
-    # if os.path.exists('logs'):
-    #     if os.path.exists('old_logs'):
-    #         shutil.rmtree('old_logs')
-    #     os.mkdir('old_logs', 0755)
-    #     copytree('logs', 'old_logs')
-    #     shutil.rmtree('logs')
-    # os.mkdir('logs', 0755)
+    if os.path.exists('logs'):
+        if os.path.exists('old_logs'):
+            shutil.rmtree('old_logs')
+        os.mkdir('old_logs', 0755)
+        copytree('logs', 'old_logs')
+        shutil.rmtree('logs')
+    os.mkdir('logs', 0755)
 
     # moving old trials to old_trials folder
-
-    # if os.path.exists('trials_sequentially'):
-    #     if os.path.exists('old_trials_sequentially'):
-    #         shutil.rmtree('old_trials_sequentially')
-    #     os.mkdir('old_trials_sequentially', 0755)
-    #     copytree('trials_sequentially', 'old_trials_sequentially')
-    #     shutil.rmtree('trials_sequentially')
-    # os.mkdir('trials_sequentially', 0755)
+    if os.path.exists('trials_sequentially'):
+        if os.path.exists('old_trials_sequentially'):
+            shutil.rmtree('old_trials_sequentially')
+        os.mkdir('old_trials_sequentially', 0755)
+        copytree('trials_sequentially', 'old_trials_sequentially')
+        shutil.rmtree('trials_sequentially')
+    os.mkdir('trials_sequentially', 0755)
 
     current_log_folder = ''
     left_player.num_of_trains = 1
@@ -142,23 +141,9 @@ def train_sequentially(left_player, right_player, first_learning_player):
         # choose an action epsilon greedy
         if (observation_counter % FRAME_PER_ACTION) == 0:
             if current_training_player == CurrentPlayer.Left:
-                # for the third learning
-                # q = left_player.model.predict(current_state)  # input a stack of 4 images, get the prediction
-                # max_Q = np.argmax(q)
-                # moves_options = [0, 1, 2]
-                # moves_options.remove(max_Q)
-                # if random.random() <= epsilon or exploration_flag == 1:
                 if random.random() <= epsilon:
-                    # q = left_player.model.predict(current_state)  # input a stack of 4 images, get the prediction
-                    # max_Q = np.argmax(q)
-                    # exploration_flag = 1
-                    # exploration_counter +=1
                     action_index1 = random.randrange(NUM_OF_ACTIONS)
-                    # action_index1 = random.choice(moves_options)
                     action_left_player[action_index1] = 1
-                    # if exploration_counter > 10:
-                    #    exploration_flag = 0
-                    #    exploration_counter = 0
                 else:
                     q = left_player.model.predict(current_state)  # input a stack of 4 images, get the prediction
                     max_Q = np.argmax(q)
@@ -172,21 +157,9 @@ def train_sequentially(left_player, right_player, first_learning_player):
                 action_right_player[action_index2] = 1
 
             elif current_training_player == CurrentPlayer.Right:
-                # if random.random() <= epsilon:
-                # action_index2 = random.randrange(NUM_OF_ACTIONS)
-                # action_right_player[action_index2] = 1
                 if random.random() <= epsilon or exploration_flag == 1:
-                    exploration_flag = 1
-                    exploration_counter += 1
-                    q = right_player.model.predict(current_state)  # input a stack of 4 images, get the prediction
-                    max_Q = np.argmax(q)
-                    moves_options = [0, 1, 2]
-                    moves_options.remove(max_Q)
-                    action_index2 = random.choice(moves_options)
+                    action_index2 = random.randrange(NUM_OF_ACTIONS)
                     action_right_player[action_index2] = 1
-                    if exploration_counter > 10:
-                        exploration_flag = 0
-                        exploration_counter = 0
                 else:
                     q = right_player.model.predict(current_state)  # input a stack of 4 images, get the prediction
                     max_Q = np.argmax(q)
@@ -216,18 +189,18 @@ def train_sequentially(left_player, right_player, first_learning_player):
         for i in range(80):  # erasing the line in the right side of the screen
             single_game_frame[79, i] = 0
 
-        if (score >= 0):
-            fig1 = plt.figure(pic_counter)
-            # plt.imshow(x_t1_colored)
-            plt.imshow(single_game_frame)
-            print('time now: ', datetime.datetime.now())
-        #fig1.savefig('pic/' + str(j) + '/' + str(pic_counter) + 'colored pic.png')
-        fig1.savefig('pic/' + str(pic_counter) + 'colored pic.png')
-
-        plt.close()
-
-        t = t + 1
-        pic_counter += 1
+        # if (score >= 0):
+        #     fig1 = plt.figure(pic_counter)
+        #     # plt.imshow(x_t1_colored)
+        #     plt.imshow(single_game_frame)
+        #     print('time now: ', datetime.datetime.now())
+        # #fig1.savefig('pic/' + str(j) + '/' + str(pic_counter) + 'colored pic.png')
+        # fig1.savefig('pic/' + str(pic_counter) + 'colored pic.png')
+        #
+        # plt.close()
+        #
+        # t = t + 1
+        # pic_counter += 1
 
         single_game_frame = single_game_frame.reshape(1, 1, single_game_frame.shape[0],
                                                       single_game_frame.shape[1])
@@ -426,6 +399,9 @@ def train_simultaneously(left_player, right_player):
     single_game_frame = skimage.transform.resize(single_game_frame, (IMAGE_WIDTH, IMAGE_HEIGHT))
     single_game_frame = skimage.exposure.rescale_intensity(single_game_frame, out_range=(0, 255))
 
+    for i in range(80):  # erasing the line in the right side of the screen
+        single_game_frame[79, i] = 0
+
     # stacking 4 images together to form a state: 4 images = state
     current_state = np.stack((single_game_frame, single_game_frame, single_game_frame,
                               single_game_frame), axis=0)
@@ -489,6 +465,10 @@ def train_simultaneously(left_player, right_player):
         single_game_frame = skimage.exposure.rescale_intensity(single_game_frame, out_range=(0, 255))
         single_game_frame = single_game_frame.reshape(1, 1, single_game_frame.shape[0],
                                                       single_game_frame.shape[1])
+
+        for i in range(80):  # erasing the line in the right side of the screen
+            single_game_frame[79, i] = 0
+
         # next 4 images = next state
         next_state = np.append(single_game_frame, current_state[:, :3, :, :], axis=1)
 
