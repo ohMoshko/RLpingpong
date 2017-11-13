@@ -120,9 +120,9 @@ def train_sequentially(left_player, right_player, first_learning_player):
     exploration_flag = 0
 
     #j = 1
-    os.mkdir("pic/", 0755);
-    t = 0
-    pic_counter = 0
+    # os.mkdir("pic/", 0755);
+    # t = 0
+    # pic_counter = 0
 
     while True:
         loss = 0
